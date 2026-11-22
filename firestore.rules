@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.uid == "tNigpJD0iudxzcoP49DDmA4uDQK2";
+    }
+
+    match /activityEvents/{eventId} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(["timestamp", "page", "type", "action"])
+        && request.resource.data.keys().hasAll(["timestamp", "page", "type"])
+        && request.resource.data.timestamp == request.time
+        && request.resource.data.page is string
+        && request.resource.data.page.matches("^[a-zA-Z0-9_-]{1,40}$")
+        && request.resource.data.type in ["page_visit", "interaction"]
+        && (
+          (request.resource.data.type == "page_visit"
+            && !("action" in request.resource.data))
+          ||
+          (request.resource.data.type == "interaction"
+            && "action" in request.resource.data
+            && request.resource.data.action is string
+            && request.resource.data.action.matches("^[a-zA-Z0-9:_-]{1,80}$"))
+        );
+
+      allow get, list, update, delete: if isAdmin();
+    }
+  }
+}

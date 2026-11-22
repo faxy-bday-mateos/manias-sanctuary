@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Four Seasons Supremacy</title>
+<style>
+/* ===== Base ===== */
+:root{--acc:#f6a9c2;--ui:#eef3f8;--glass:rgba(12,18,28,.42);--line:rgba(255,255,255,.16)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden;background:#0b1018;color:var(--ui);
+  font:13px/1.4 "Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+
+/* ===== Stage: scene canvas, snow canvas, film grain, vignette ===== */
+#stage{position:fixed;inset:0;overflow:hidden;z-index:0}
+#stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+.grain{position:absolute;inset:-50%;opacity:.07;mix-blend-mode:overlay;pointer-events:none;animation:grain .9s steps(4) infinite}
+@keyframes grain{25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+.vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(0,0,0,.38))}
+
+/* ===== HUD ===== */
+.hud{position:fixed;left:0;right:0;top:0;padding:max(18px,env(safe-area-inset-top)) 24px 44px;pointer-events:none;z-index:1;
+  background:linear-gradient(rgba(5,10,18,.36),transparent);transition:opacity .6s}
+.brand{font-size:12px;letter-spacing:.18em;opacity:.8}
+#wName{font-size:clamp(30px,5.4vw,58px);font-weight:200;letter-spacing:.005em;margin-top:8px;
+  text-shadow:0 2px 24px rgba(0,0,0,.3);transition:opacity .35s,transform .35s}
+#wSub{opacity:.78;margin-top:2px;transition:opacity .35s}
+.swap #wName,.swap #wSub{opacity:0}
+.swap #wName{transform:translateY(6px)}
+.env{display:flex;gap:26px;margin-top:16px;flex-wrap:wrap}
+.env div{font-size:11px;opacity:.78}
+.env b{display:block;font-size:16px;font-weight:400;font-variant-numeric:tabular-nums}
+
+/* ===== Control panel ===== */
+#panel{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);
+  width:min(940px,calc(100% - 24px));padding:14px 16px;border-radius:18px;background:var(--glass);
+  border:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);z-index:2;
+  transition:opacity .6s,transform .6s}
+.idle #panel{opacity:0;transform:translate(-50%,12px);pointer-events:none}
+.hide #panel,.hide .hud{opacity:0;pointer-events:none}
+#presets{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+#presets::-webkit-scrollbar{display:none}
+#seasons{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.season{appearance:none;border:0;border-bottom:2px solid rgba(255,255,255,.14);background:transparent;padding:8px 4px 9px;
+  font-size:16px;font-weight:300;letter-spacing:.03em;opacity:.65;cursor:pointer;transition:opacity .3s,border-color .3s,background .3s}
+.season:hover{opacity:1}
+.season::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--sa);margin-right:8px;vertical-align:1px}
+.season[aria-selected=true]{opacity:1;border-color:var(--sa);background:linear-gradient(transparent,color-mix(in srgb,var(--sa) 24%,transparent))}
+#bSeason{margin-left:10px;color:var(--acc)}
+.chip,.btn{flex:0 0 auto;appearance:none;border:1px solid var(--line);background:rgba(255,255,255,.06);
+  padding:7px 13px;border-radius:99px;cursor:pointer;transition:background .25s,color .25s}
+.chip:hover,.btn:hover{background:rgba(255,255,255,.16)}
+.chip[aria-pressed=true]{background:var(--acc);color:#10202e;border-color:transparent}
+:focus-visible{outline:2px solid #fff;outline-offset:2px}
+#sliders{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 20px;margin-top:14px}
+label{display:block;font-size:12px;opacity:.85}
+label output{float:right;font-variant-numeric:tabular-nums;opacity:.85}
+input[type=range]{width:100%;height:24px;margin-top:2px;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:rgba(255,255,255,.32);border-radius:2px}
+input[type=range]::-moz-range-track{height:2px;background:rgba(255,255,255,.32)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;margin-top:-6.5px;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 5px rgba(255,255,255,.14)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#fff;border:0}
+.actions{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.hint{margin-left:auto;font-size:11px;opacity:.6}
+@media(max-width:640px){
+  #sliders{grid-template-columns:1fr 1fr}.hint{display:none}.hud{padding-left:16px;padding-right:16px}.env{gap:18px}
+}
+@media(max-height:520px){.env{display:none}#wSub{display:none}}
+@media(prefers-reduced-motion:reduce){.grain{animation:none}}
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="scene"></canvas>   <!-- sky, clouds, ridges, fog -->
+  <canvas id="snow"></canvas>    <!-- depth-sorted snow particles -->
+  <div class="grain" id="grain"></div>
+  <div class="vig"></div>
+</div>
+
+<header class="hud" id="hud">
+  <h1 class="brand">Four Seasons Supremacy<span id="bSeason"></span></h1>
+  <div id="wName"></div>
+  <div id="wSub"></div>
+  <div class="env">
+    <div><b id="eTime">--</b>Local time</div>
+    <div><b id="eTemp">--</b>Temperature</div>
+    <div><b id="eWind">--</b>Wind</div>
+    <div><b id="eVis">--</b>Visibility</div>
+  </div>
+</header>
+
+<section id="panel" aria-label="Sky controls">
+  <div id="seasons" role="tablist" aria-label="Seasons"></div>
+  <div id="presets" role="group" aria-label="Weather presets"></div>
+  <div id="sliders">
+    <div><label for="rDen"><span id="lDen">Snowfall</span> <output id="oDen"></output></label><input id="rDen" type="range" min="0" max="100"></div>
+    <div><label for="rWind">Wind <output id="oWind"></output></label><input id="rWind" type="range" min="-100" max="100"></div>
+    <div><label for="rCloud">Clouds <output id="oCloud"></output></label><input id="rCloud" type="range" min="0" max="100"></div>
+    <div><label for="rBri">Brightness <output id="oBri"></output></label><input id="rBri" type="range" min="40" max="140"></div>
+  </div>
+  <div class="actions">
+    <button class="btn" id="bPause">Pause</button>
+    <button class="btn" id="bFull">Fullscreen</button>
+    <button class="btn" id="bHide">Hide controls</button>
+    <span class="hint">Keys: Space pauses, F fullscreen, H hides, S next season, 1 to 9 pick a preset</span>
+  </div>
+</section>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================================================================
+   Helpers
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const rand = (a, b) => a + Math.random() * (b - a);
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+const rgba = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+
+/* =====================================================================
+   Weather presets
+   Colour fields are hex strings here and converted to RGB arrays below.
+   density/wind/cloud/bright seed the sliders; the rest drive the renderer.
+   ===================================================================== */
+const DEFAULTS = {
+  orbX: .7, orbY: .22, sunA: 0, moonA: 0, glowA: .3, glowS: .5, glowC: '#f3efe6', stars: 0,
+  cSpeed: 1, tint: '#ffffff', size: 1, turb: .5, wind: .1, bright: 1,
+  kind: 'snow', aux: null, auxN: 0, storm: 0, heat: 0, rainbow: 0, ptint: '#fff3c0'   // kind = main particle system (slider), aux = fixed secondary
+};
+const WINTER = [
+  { short: 'Gentle', name: 'Gentle Snowfall', sub: 'Soft flakes drifting through pale, diffuse light', time: '10:20', temp: -3,
+    sky: ['#9fb0bf', '#b9c6d0', '#d6dde2'], cLit: '#e1e7ec', cShade: '#a3afba', cloud: .6, cSpeed: .8,
+    fog: .18, fogC: '#d5dde3', ridge: '#7e909d', ground: '#e8eef2', density: .22, speed: .8, turb: .5, wind: .12 },
+  { short: 'Heavy', name: 'Heavy Snowfall', sub: 'Dense, wet flakes beneath a low ceiling of cloud', time: '13:05', temp: -6,
+    sky: ['#7f8e9b', '#9aa8b3', '#c0cad1'], glowA: .15, cLit: '#c3ccd3', cShade: '#8693a0', cloud: .85,
+    fog: .3, fogC: '#c9d2d9', ridge: '#6b7d8a', ground: '#dde5ea', density: .6, speed: 1.1, size: 1.15, turb: .6, wind: .2, bright: .95 },
+  { short: 'Storm', name: 'Winter Snowstorm', sub: 'Gale-driven snow racing across a darkened sky', time: '15:40', temp: -12,
+    sky: ['#56636f', '#72808c', '#97a3ad'], glowA: .05, cLit: '#9aa5af', cShade: '#566370', cloud: 1, cSpeed: 2.6,
+    fog: .45, fogC: '#a6b1ba', ridge: '#52626f', ground: '#cfd9e0', density: .85, speed: 1.5, size: 1.1, turb: 1.4, wind: .75, bright: .9 },
+  { short: 'Overcast', name: 'Overcast Grey', sub: 'Still, featureless cloud and flat winter light', time: '12:00', temp: 0,
+    sky: ['#8e979f', '#a7afb6', '#c5cbd0'], glowA: .12, cLit: '#d0d5d9', cShade: '#9aa2aa', cloud: 1, cSpeed: .6,
+    fog: .15, fogC: '#cfd5da', ridge: '#7a8791', ground: '#e4e9ec', density: .04, speed: .6, size: .9, turb: .3 },
+  { short: 'Clear morning', name: 'Clear Blue Morning', sub: 'Crisp, cold air, low sun and drifting diamond dust', time: '07:40', temp: -8,
+    sky: ['#2d6bb5', '#6aa6dc', '#d3e8f6'], orbX: .27, orbY: .3, sunA: 1, glowA: .85, glowS: .6, glowC: '#fff1cc',
+    cLit: '#ffffff', cShade: '#c1d4e8', cloud: .2, cSpeed: .5, fog: .08, fogC: '#dcecf7', ridge: '#8aaec8', ground: '#f4f9fd',
+    density: .03, speed: .4, size: .75, turb: .3, wind: .05, bright: 1.05 },
+  { short: 'Golden sunset', name: 'Snowy Golden Sunset', sub: 'Amber light spilling across drifting flurries', time: '16:10', temp: -5,
+    sky: ['#36447a', '#d98a62', '#f7c47c'], orbX: .64, orbY: .57, sunA: 1, glowA: 1, glowS: .75, glowC: '#ffc47a',
+    cLit: '#ffd6a6', cShade: '#7f5670', cloud: .45, cSpeed: .7, fog: .16, fogC: '#f1b886', ridge: '#4a4767',
+    ground: '#f2d2b8', tint: '#ffe7cb', density: .12, speed: .7, size: .9, turb: .4 },
+  { short: 'Moonlit night', name: 'Midnight Snowfall', sub: 'Quiet snow beneath a cold, bright moon', time: '00:30', temp: -10,
+    sky: ['#040a18', '#0d1b36', '#1f3658'], orbX: .72, orbY: .2, moonA: 1, glowA: .55, glowS: .55, glowC: '#b4cdfa', stars: .9,
+    cLit: '#5f77a0', cShade: '#15213a', cloud: .3, cSpeed: .6, fog: .12, fogC: '#2b4066', ridge: '#0a1325',
+    ground: '#6a86b2', tint: '#d2e2ff', density: .3, speed: .7, size: .95, turb: .4, wind: -.08, bright: 1.05 },
+  { short: 'Blizzard', name: 'Dense Blizzard', sub: 'Whiteout fog and wind-blasted snow', time: '14:30', temp: -15,
+    sky: ['#8a959f', '#a2acb4', '#bbc4ca'], glowA: 0, cLit: '#c8d0d6', cShade: '#8e99a3', cloud: 1, cSpeed: 2,
+    fog: .8, fogC: '#c6cdd3', ridge: '#919ca6', ground: '#e0e6ea', density: 1, speed: 1.4, size: 1.2, turb: 1.1, wind: .6 },
+  { short: 'After the snow', name: 'After the Snow', sub: 'Sun breaking through, mist lifting off fresh powder', time: '11:30', temp: -2,
+    sky: ['#4f86c4', '#8fb8de', '#dbe9f2'], orbX: .35, orbY: .3, sunA: 1, glowA: .9, glowS: .7, glowC: '#fff1d0',
+    cLit: '#ffffff', cShade: '#b8cade', cloud: .5, cSpeed: .5, fog: .3, fogC: '#e2edf4', ridge: '#8aa8c0', ground: '#f6fafd',
+    density: .05, speed: .4, size: .7, turb: .3, wind: .06, bright: 1.06 }
+];
+
+const SPRING = [
+  { short: 'Morning', name: 'Spring Morning', sub: 'Soft blue sky, delicate cloud and fresh morning light', time: '07:15', temp: 11,
+    sky: ['#5f9fdc', '#9cc8ec', '#e4f0f4'], orbX: .3, orbY: .32, sunA: 1, glowA: .7, glowS: .55, glowC: '#fff3d6', cLit: '#ffffff', cShade: '#d2e0ee',
+    cloud: .3, cSpeed: .6, fog: .12, fogC: '#e6f0ee', ridge: '#7fa68c', ground: '#8fbf72', kind: 'pollen', density: .35, speed: .5, size: .8, wind: .08, bright: 1.02 },
+  { short: 'Blossom', name: 'Cherry Blossom Sky', sub: 'Pink petals drifting on a warm, gentle breeze', time: '09:40', temp: 14,
+    sky: ['#7fb0e0', '#bcd5ee', '#f4e6ee'], orbX: .68, orbY: .3, sunA: .8, glowA: .6, glowC: '#fff0e4', cLit: '#ffffff', cShade: '#e7d4e0',
+    cloud: .35, cSpeed: .6, fog: .14, fogC: '#f4e4ec', ridge: '#9aa5b5', ground: '#a9c985', kind: 'petal', density: .5, speed: 1, turb: .8, wind: .25, bright: 1.02 },
+  { short: 'Rain', name: 'Spring Rain', sub: 'Light rain falling from soft grey cloud', time: '11:30', temp: 9,
+    sky: ['#7d8a96', '#98a5ae', '#bcc7cb'], glowA: .08, cLit: '#c4ced2', cShade: '#7f8c97', cloud: .88, cSpeed: 1, fog: .3, fogC: '#c3cdd0',
+    ridge: '#5f7a6a', ground: '#5f7f4e', kind: 'rain', density: .4, speed: .9, turb: .35, wind: .15, bright: .93 },
+  { short: 'After rain', name: 'After the Rain', sub: 'Sunlight through breaking cloud, mist and a faint rainbow', time: '14:20', temp: 13,
+    sky: ['#5c97d2', '#9cc5e6', '#e9eed8'], orbX: .22, orbY: .3, sunA: 1, glowA: .9, glowS: .65, glowC: '#fff0c2', cLit: '#ffffff', cShade: '#a9b9c9',
+    cloud: .55, cSpeed: .5, fog: .28, fogC: '#e4ece6', ridge: '#6d977a', ground: '#78a85e', kind: 'pollen', density: .2, speed: .5, wind: .05, rainbow: .85, bright: 1.03 },
+  { short: 'Sunset', name: 'Golden Spring Sunset', sub: 'Pink, peach and gold light across the evening cloud', time: '19:10', temp: 12,
+    sky: ['#5a5f9a', '#e7a1a0', '#fbd29a'], orbX: .62, orbY: .56, sunA: 1, glowA: 1, glowS: .75, glowC: '#ffbf8a', cLit: '#ffd7c0', cShade: '#8f6584',
+    cloud: .5, cSpeed: .6, fog: .15, fogC: '#f4c4a4', ridge: '#5a5878', ground: '#8e9a5e', kind: 'petal', density: .12, turb: .6, wind: .1 },
+  { short: 'Windy', name: 'Windy Spring Afternoon', sub: 'Fast-moving cloud and petals streaming on the wind', time: '15:00', temp: 16,
+    sky: ['#3f84cc', '#7fb4e2', '#d3e5f0'], orbX: .75, orbY: .26, sunA: 1, glowA: .7, glowC: '#fff4d6', cLit: '#ffffff', cShade: '#b9cde3',
+    cloud: .55, cSpeed: 3, fog: .06, fogC: '#e0eef3', ridge: '#79a285', ground: '#86b668', kind: 'petal', aux: 'pollen', auxN: .2, density: .6, speed: 1.1, turb: 1.1, wind: .8, bright: 1.03 }
+];
+
+const SUMMER = [
+  { short: 'Clear', name: 'Clear Summer Sky', sub: 'Deep blue sky with soft white cumulus', time: '11:00', temp: 27,
+    sky: ['#1f62b8', '#4f94d8', '#b8dcf2'], orbX: .5, orbY: .2, sunA: 1, glowA: .8, glowS: .6, glowC: '#fff4d0', cLit: '#ffffff', cShade: '#c0d6ec',
+    cloud: .3, cSpeed: .6, fog: .08, fogC: '#d8ebf6', ridge: '#5f9078', ground: '#6fa058', kind: 'pollen', density: .15, speed: .5, turb: .4, wind: .07, bright: 1.05 },
+  { short: 'Golden afternoon', name: 'Golden Summer Afternoon', sub: 'Bright sun and warm, hazy light', time: '16:30', temp: 31,
+    sky: ['#3a78c0', '#82b4de', '#f3e2b8'], orbX: .7, orbY: .3, sunA: 1, glowA: 1, glowS: .8, glowC: '#ffe39a', cLit: '#fff8e4', cShade: '#d6c8a8',
+    cloud: .3, cSpeed: .5, fog: .22, fogC: '#f6e8c4', ridge: '#8aa070', ground: '#a9a95a', kind: 'pollen', density: .3, size: .9, wind: .06, bright: 1.08 },
+  { short: 'Sunset', name: 'Summer Sunset', sub: 'Orange, red and violet cloud over a darkening land', time: '20:15', temp: 25,
+    sky: ['#2d2e6e', '#b0486a', '#f58a3c'], orbX: .55, orbY: .58, sunA: 1, glowA: 1, glowS: .85, glowC: '#ff8a3c', cLit: '#ff9a56', cShade: '#4d2a5c',
+    cloud: .55, cSpeed: .6, fog: .14, fogC: '#f08a50', ridge: '#2f2848', ground: '#5d5436', kind: 'pollen', density: .1 },
+  { short: 'Rainstorm', name: 'Summer Rainstorm', sub: 'Heavy rain, dark cloud and lightning', time: '17:50', temp: 21,
+    sky: ['#2c3340', '#46505e', '#6d7884'], glowA: 0, cLit: '#6f7a88', cShade: '#2c3340', cloud: 1, cSpeed: 2.2, fog: .35, fogC: '#79858f',
+    ridge: '#2f4338', ground: '#3b5530', kind: 'rain', density: .9, speed: 1.1, turb: 1, wind: .45, storm: 1, bright: .85 },
+  { short: 'Monsoon', name: 'Monsoon Sky', sub: 'Dense cloud, steady rain and heavy, humid haze', time: '15:20', temp: 29,
+    sky: ['#59636c', '#77828a', '#a4aeb0'], glowA: .1, glowC: '#e8e2c4', cLit: '#a9b1b3', cShade: '#5c666d', cloud: 1, cSpeed: 1, fog: .5, fogC: '#aeb6b0',
+    ridge: '#4e6a58', ground: '#456a38', kind: 'rain', density: .7, speed: 1, turb: .5, wind: .3, bright: .9 },
+  { short: 'Night', name: 'Summer Night', sub: 'Deep blue sky, stars, moonlight and drifting fireflies', time: '23:00', temp: 22,
+    sky: ['#030818', '#0a1a3c', '#1f3a66'], orbX: .3, orbY: .22, moonA: 1, glowA: .5, glowS: .5, glowC: '#c4d6ff', stars: 1, cLit: '#4a6490', cShade: '#101c36',
+    cloud: .22, cSpeed: .5, fog: .1, fogC: '#1c3258', ridge: '#050c1a', ground: '#16302a', kind: 'pollen', ptint: '#d8ff8a', density: .12, size: 1, wind: .04, bright: 1.05 },
+  { short: 'Heatwave', name: 'Heatwave', sub: 'Hazy white sun and shimmering air over the horizon', time: '14:00', temp: 39,
+    sky: ['#4e86c0', '#a5c6dc', '#f6e6bc'], orbX: .5, orbY: .24, sunA: 1, glowA: 1, glowS: .95, glowC: '#fff0b8', cLit: '#fff4dc', cShade: '#dccfae',
+    cloud: .08, cSpeed: .3, fog: .35, fogC: '#f4e4bc', ridge: '#a8a07a', ground: '#b9a665', kind: 'pollen', density: .2, heat: 1, wind: .04, bright: 1.1 }
+];
+
+const AUTUMN = [
+  { short: 'Morning', name: 'Autumn Morning', sub: 'Pale golden sun through soft grey cloud', time: '07:50', temp: 8,
+    sky: ['#6f8fb0', '#bcc8cc', '#f1dcb0'], orbX: .25, orbY: .36, sunA: .9, glowA: .8, glowC: '#ffdc9a', cLit: '#f4eadc', cShade: '#9aa0a6',
+    cloud: .55, cSpeed: .6, fog: .25, fogC: '#eadcc0', ridge: '#8a7c62', ground: '#a58a4e', kind: 'leaf', density: .12, speed: .8, wind: .1 },
+  { short: 'Falling leaves', name: 'Falling Leaves', sub: 'Orange, yellow and brown leaves tumbling on the wind', time: '14:40', temp: 12,
+    sky: ['#7a9ab8', '#b4c6cf', '#ecdcb8'], orbX: .68, orbY: .3, sunA: .6, glowA: .6, glowC: '#ffe0a8', cLit: '#f1e8d8', cShade: '#a0a4a8',
+    cloud: .45, cSpeed: .8, fog: .15, fogC: '#eadcc0', ridge: '#8d7358', ground: '#a67f3e', kind: 'leaf', density: .55, speed: 1, turb: .9, wind: .3 },
+  { short: 'Sunset', name: 'Autumn Sunset', sub: 'Deep orange, amber and crimson light', time: '18:05', temp: 10,
+    sky: ['#2f2a54', '#a8403a', '#f09a3c'], orbX: .6, orbY: .57, sunA: 1, glowA: 1, glowS: .8, glowC: '#ff8c34', cLit: '#ffa95c', cShade: '#5a2638',
+    cloud: .5, cSpeed: .6, fog: .16, fogC: '#e8863e', ridge: '#3b2536', ground: '#6a4a28', kind: 'leaf', density: .2, wind: .15 },
+  { short: 'Cloudy', name: 'Cloudy Autumn Afternoon', sub: 'Muted grey sky and slowly moving cloud', time: '15:30', temp: 9,
+    sky: ['#7d8790', '#9aa3a8', '#c3c6c0'], glowA: .1, cLit: '#c8cbc8', cShade: '#868e94', cloud: .95, cSpeed: 1, fog: .18, fogC: '#c9cbc2',
+    ridge: '#756d5c', ground: '#8d7a4a', kind: 'leaf', density: .08, wind: .15, bright: .95 },
+  { short: 'Rain', name: 'Autumn Rain', sub: 'Gentle rain with the odd leaf drifting down', time: '13:10', temp: 7,
+    sky: ['#667078', '#808a90', '#a9b0b0'], glowA: .05, cLit: '#a8afb0', cShade: '#667078', cloud: .95, cSpeed: 1.2, fog: .32, fogC: '#aeb2a8',
+    ridge: '#575a48', ground: '#5e4f2f', kind: 'rain', aux: 'leaf', auxN: .1, density: .38, speed: .9, wind: .2, bright: .9 },
+  { short: 'Fog', name: 'Foggy Autumn Morning', sub: 'Dense fog and very low visibility', time: '06:50', temp: 5,
+    sky: ['#9aa0a0', '#b5b8b2', '#d0cfc2'], orbX: .3, orbY: .34, glowA: .35, glowC: '#f6e6c0', cLit: '#d9d7cc', cShade: '#a5a89f', cloud: .7, cSpeed: .3,
+    fog: .85, fogC: '#cfcdbf', ridge: '#8d8a76', ground: '#9c8a58', kind: 'leaf', density: .06, speed: .6, turb: .3, wind: .03 },
+  { short: 'Night', name: 'Autumn Night', sub: 'Dark navy sky, faint stars and a cold stillness', time: '22:30', temp: 3,
+    sky: ['#030714', '#0a1530', '#1a2c4a'], orbX: .75, orbY: .2, moonA: .8, glowA: .35, glowC: '#b8c8ee', stars: .8, cLit: '#46587a', cShade: '#0f1a2e',
+    cloud: .25, cSpeed: .6, fog: .18, fogC: '#233350', ridge: '#070d19', ground: '#2b2d26', kind: 'leaf', density: .08, wind: .1 }
+];
+
+const PRESETS = [['spring', SPRING], ['summer', SUMMER], ['autumn', AUTUMN], ['winter', WINTER]]
+  .flatMap(([season, list]) => list.map(p => Object.assign({}, DEFAULTS, p, { season })));
+['glowC', 'cLit', 'cShade', 'fogC', 'ridge', 'ground', 'tint', 'ptint'].forEach(k => PRESETS.forEach(p => p[k] = hex(p[k])));
+PRESETS.forEach(p => p.sky = p.sky.map(hex));
+
+/* =====================================================================
+   State
+   ctl = values driven by the sliders; cur = the live, smoothly blended
+   atmosphere that is actually rendered (eases toward preset + sliders).
+   ===================================================================== */
+const ctl = { density: 0, wind: 0, cloud: 0, bright: 1 };
+let idx = 0, time = 0;
+// Target atmosphere: preset + sliders. The slider drives the preset's main particle system;
+// every system has its own amount, so switching seasons cross-fades particle types.
+const target = () => {
+  const p = PRESETS[idx], t = Object.assign({}, p, ctl);
+  t.snow = t.rain = t.petal = t.leaf = t.pollen = 0;
+  t[p.kind] = ctl.density;
+  if (p.aux) t[p.aux] = p.auxN;
+  return t;
+};
+const cur = JSON.parse(JSON.stringify(target()));            // strings are ignored by lerpTo
+
+function lerpArr(a, b, k) {
+  for (let i = 0; i < b.length; i++) Array.isArray(b[i]) ? lerpArr(a[i], b[i], k) : a[i] += (b[i] - a[i]) * k;
+}
+function lerpTo(c, t, k) {
+  for (const key in t) {
+    const b = t[key];
+    if (typeof b === 'number') c[key] += (b - c[key]) * k;
+    else if (Array.isArray(b)) lerpArr(c[key], b, k);
+  }
+}
+
+/* =====================================================================
+   Canvas setup
+   ===================================================================== */
+const scene = $('scene'), snow = $('snow'), stage = $('stage');
+const sx = scene.getContext('2d'), nx = snow.getContext('2d');
+const ocv = document.createElement('canvas'), oc = ocv.getContext('2d');  // half-res cloud buffer
+let W = 0, H = 0, U = 1, MAXN = 1000, DP = 1, SC = 1, QF = 1;
+const hc = document.createElement('canvas'), hx = hc.getContext('2d');  // heat-haze copy buffer
+
+function resize() {
+  const nw = innerWidth, nh = innerHeight;
+  if (!nw || !nh) return;
+  const rx = W ? nw / W : 1, ry = H ? nh / H : 1;
+  W = nw; H = nh;
+  const dpr = devicePixelRatio || 1; SC = Math.min(dpr, 1.5); DP = Math.min(dpr, 2);
+  scene.width = (W * SC) | 0; scene.height = (H * SC) | 0; sx.setTransform(SC, 0, 0, SC, 0, 0);
+  snow.width = (W * DP) | 0;  snow.height = (H * DP) | 0;  nx.setTransform(DP, 0, 0, DP, 0, 0);
+  ocv.width = (W * .5) | 0;   ocv.height = (H * .5) | 0;   oc.setTransform(.5, 0, 0, .5, 0, 0);
+  U = clamp(W / 1300, .55, 1.3);                                 // global size unit
+  const coarse = matchMedia('(pointer:coarse)').matches;
+  QF = coarse ? .5 : 1; hc.width = scene.width; hc.height = scene.height;
+  MAXN = clamp((W * H / 650) | 0, 450, coarse ? 1200 : FLAKES.length);
+  for (const p of FLAKES) { p.x *= rx; p.y *= ry; }
+  if (!raf) step(0, 1);                                          // repaint when paused
+}
+
+/* =====================================================================
+   Sky assets: cloud puff sprite, clouds, stars, ridges
+   ===================================================================== */
+const puff = document.createElement('canvas');
+puff.width = puff.height = 96;
+{
+  const g = puff.getContext('2d'), r = g.createRadialGradient(48, 48, 0, 48, 48, 48);
+  [[0, .85], [.4, .5], [.75, .14], [1, 0]].forEach(([s, a]) => r.addColorStop(s, `rgba(255,255,255,${a})`));
+  g.fillStyle = r; g.fillRect(0, 0, 96, 96);
+}
+
+// Cloud layers (far -> near). f = parallax speed, flat = vertical squash, al = opacity.
+const LAYERS = [
+  { n: 12, y0: .03, y1: .32, s0: 90,  s1: 200, f: .3,  flat: .42, al: .6 },
+  { n: 11, y0: .08, y1: .46, s0: 150, s1: 320, f: .65, flat: .5,  al: .85 },
+  { n: 8,  y0: 0,   y1: .36, s0: 260, s1: 520, f: 1,   flat: .6,  al: .9 }
+];
+const FOG = { n: 10, y0: .6, y1: .86, s0: 200, s1: 420, f: .5, flat: .3, al: .7 };
+
+// A cloud is a cluster of overlapping puffs, domed in the middle; t = density threshold at which it appears.
+function makeCloud(L) {
+  const w = rand(L.s0, L.s1), puffs = [];
+  for (let i = 0, n = rand(9, 15) | 0; i < n; i++) {
+    const dx = rand(-1, 1);
+    puffs.push({ dx: dx * w * 1.5, dy: -(1 - dx * dx) * w * rand(.05, .25) + rand(-.08, .08) * w,
+                 s: w * rand(.45, .9) * (1 - Math.abs(dx) * .5), a: rand(.5, 1) });
+  }
+  return { x: Math.random(), y: rand(L.y0, L.y1), t: Math.random(), puffs };
+}
+[...LAYERS, FOG].forEach(L => { L.cl = Array.from({ length: L.n }, () => makeCloud(L)); L.off = rand(0, 1000); });
+
+const STARS = Array.from({ length: 220 }, () => ({
+  x: Math.random(), y: Math.random(), r: rand(.6, 1.7), b: rand(.35, 1), f: rand(.8, 2.4), p: rand(0, 6.3) }));
+
+// Layered snowy ridgelines, generated once as height arrays. The nearest has a jagged pine-line.
+function makeRidge(spiky) {
+  const N = 300, ph = [0, 1, 2, 3].map(() => rand(0, 6.3)), f = rand(.8, 1.4), hs = [];
+  for (let i = 0; i <= N; i++) {
+    const x = i / N * Math.PI * 2 * f;
+    let v = 0;
+    for (let k = 0; k < 4; k++) v += Math.sin(x * (k + 1) * 1.7 + ph[k]) / (k + 1);
+    v = (v + 2.08) / 4.16;
+    if (spiky) v += .22 * (i % 3 ? (i % 3 === 1 ? .4 : .7) : 1) * (.6 + Math.random() * .4);
+    hs.push(v);
+  }
+  return hs;
+}
+const RIDGES = [
+  { base: .64, amp: .11, k: .35, hs: makeRidge(0) },
+  { base: .72, amp: .09, k: .65, hs: makeRidge(0) },
+  { base: .80, amp: .06, k: 1,   hs: makeRidge(1) }
+];
+
+/* =====================================================================
+   Scene rendering
+   ===================================================================== */
+
+// Draws one soft cloud layer into the half-res buffer, tints it top->bottom, then composites it.
+function drawLayer(L, dens, amount, top, bot, ks, dt) {
+  L.off += dt * (6 + 14 * cur.cSpeed + cur.wind * 110) * L.f;     // wind pushes clouds
+  if (amount < .01) return;
+  const M = Math.max(W * .35, 1.6 * L.s1 * ks), span = W + 2 * M;
+  oc.clearRect(0, 0, W, H);
+  for (const cl of L.cl) {
+    const a = clamp((dens - cl.t) * 4, 0, 1) * amount;            // cloud fades in/out with density
+    if (a < .01) continue;
+    const x = (((cl.x * span + L.off) % span) + span) % span - M, y = cl.y * H;
+    for (const p of cl.puffs) {
+      const s = p.s * ks;
+      oc.globalAlpha = a * p.a * L.al;
+      oc.drawImage(puff, x + p.dx * ks - s, y + p.dy * ks - s * L.flat, 2 * s, 2 * s * L.flat);
+    }
+  }
+  oc.globalAlpha = 1;
+  oc.globalCompositeOperation = 'source-atop';                    // colour only where puffs exist
+  const g = oc.createLinearGradient(0, L.y0 * H - 40, 0, L.y1 * H + Math.max(120, L.s1 * ks));
+  g.addColorStop(0, rgba(top)); g.addColorStop(1, rgba(bot));
+  oc.fillStyle = g; oc.fillRect(0, 0, W, H);
+  oc.globalCompositeOperation = 'source-over';
+  sx.drawImage(ocv, 0, 0, W, H);
+}
+
+function drawScene(dt) {
+  const c = cur, g = sx, cover = clamp((c.cloud - .55) / .45, 0, 1);
+  const ks = U * (.8 + .5 * c.cloud);
+
+  // Sky gradient
+  let gr = g.createLinearGradient(0, 0, 0, H * .8);
+  gr.addColorStop(0, rgba(c.sky[0])); gr.addColorStop(.55, rgba(c.sky[1])); gr.addColorStop(1, rgba(c.sky[2]));
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+
+  // Stars (hidden by cloud cover)
+  if (c.stars > .01) {
+    g.fillStyle = '#fff';
+    for (const s of STARS) {
+      g.globalAlpha = c.stars * (1 - c.cloud * .85) * s.b * (.65 + .35 * Math.sin(time * s.f + s.p));
+      g.fillRect(s.x * W, s.y * H * .62, s.r, s.r);
+    }
+    g.globalAlpha = 1;
+  }
+
+  // Sun / moon with atmospheric glow
+  const ox = c.orbX * W, oy = c.orbY * H, R = c.glowS * Math.max(W, H), ga = c.glowA * (1 - cover * .55);
+  if (ga > .01) {
+    g.globalCompositeOperation = 'lighter';
+    gr = g.createRadialGradient(ox, oy, 0, ox, oy, R);
+    gr.addColorStop(0, rgba(c.glowC, ga * .9)); gr.addColorStop(.25, rgba(c.glowC, ga * .35)); gr.addColorStop(1, rgba(c.glowC, 0));
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = 'source-over';
+  }
+  if (c.sunA > .01) {
+    const r = 34 * U, core = mix([255, 255, 255], c.glowC, .3);
+    gr = g.createRadialGradient(ox, oy, 0, ox, oy, r * 1.7);
+    gr.addColorStop(0, rgba([255, 255, 255], c.sunA)); gr.addColorStop(.55, rgba(core, c.sunA)); gr.addColorStop(1, rgba(core, 0));
+    g.fillStyle = gr; g.beginPath(); g.arc(ox, oy, r * 1.7, 0, 6.2832); g.fill();
+  }
+  if (c.moonA > .01) {
+    const r = 30 * U;
+    g.globalAlpha = c.moonA; g.fillStyle = '#e9eefc'; g.beginPath(); g.arc(ox, oy, r, 0, 6.2832); g.fill();
+    g.fillStyle = 'rgba(120,135,170,.26)';
+    [[-.3, -.2, .28], [.25, .1, .22], [-.05, .38, .16], [.32, -.38, .12]].forEach(([a, b, s]) => {
+      g.beginPath(); g.arc(ox + a * r, oy + b * r, s * r, 0, 6.2832); g.fill();
+    });
+    g.globalAlpha = 1;
+  }
+
+  // Clouds (far, mid, overcast veil, near)
+  const lit = c.cLit, sh = c.cShade, hz = c.sky[2];
+  drawLayer(LAYERS[0], c.cloud + .05, 1, mix(lit, hz, .35), mix(sh, hz, .3), ks, dt);
+  drawLayer(LAYERS[1], c.cloud + .05, 1, lit, mix(lit, sh, .7), ks, dt);
+  if (cover > .01) {
+    gr = g.createLinearGradient(0, 0, 0, H * .75);
+    gr.addColorStop(0, rgba(mix(lit, sh, .55), cover * .55)); gr.addColorStop(1, rgba(mix(lit, sh, .2), cover * .4));
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  }
+  drawLayer(LAYERS[2], c.cloud + .05, 1, mix(lit, sh, .35), sh, ks, dt);
+
+  // Rainbow: a radial colour ring opposite the sun, sitting behind the hills
+  if (c.rainbow > .01) {
+    const cx = W * (1 - c.orbX), cy = H * .95, Rb = Math.min(H * .78, W * .8);
+    gr = g.createRadialGradient(cx, cy, Rb * .86, cx, cy, Rb);
+    ['rgba(255,70,70,0)', 'rgba(255,70,70,.55)', 'rgba(255,170,50,.6)', 'rgba(255,240,90,.55)', 'rgba(90,220,110,.55)',
+     'rgba(70,160,255,.55)', 'rgba(150,90,255,.5)', 'rgba(150,90,255,0)'].forEach((col, i, a) => gr.addColorStop(i / (a.length - 1), col));
+    g.globalCompositeOperation = 'screen'; g.globalAlpha = c.rainbow * .5;
+    g.fillStyle = gr; g.fillRect(0, 0, W, H * .84);
+    g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+  }
+
+  // Ridgelines: farther ridges blend into the horizon haze
+  for (const Rg of RIDGES) {
+    g.fillStyle = rgba(mix(c.sky[2], c.ridge, Rg.k));
+    g.beginPath(); g.moveTo(0, H);
+    const N = Rg.hs.length - 1;
+    for (let i = 0; i <= N; i++) g.lineTo(i / N * W, (Rg.base - Rg.hs[i] * Rg.amp) * H);
+    g.lineTo(W, H); g.fill();
+  }
+
+  // Snowfield that melts softly into the nearest ridge, lit by the sun or moon
+  const gy = H * .84;
+  gr = g.createLinearGradient(0, gy - H * .04, 0, H);
+  gr.addColorStop(0, rgba(c.ground, 0)); gr.addColorStop(.25, rgba(c.ground)); gr.addColorStop(1, rgba(mix(c.ground, [0, 0, 0], .14)));
+  g.fillStyle = gr; g.fillRect(0, gy - H * .04, W, H - gy + H * .04);
+  const shine = (c.sunA * .3 + c.moonA * .14) * c.glowA * (1 - cover * .6);
+  if (shine > .005) {
+    gr = g.createLinearGradient(ox - W * .5, 0, ox + W * .5, 0);
+    gr.addColorStop(0, rgba(c.glowC, 0)); gr.addColorStop(.5, rgba(c.glowC, shine)); gr.addColorStop(1, rgba(c.glowC, 0));
+    g.fillStyle = gr; g.fillRect(0, gy, W, H - gy);
+  }
+
+  // Ground fog banks, then overall haze (strongest near the ground)
+  drawLayer(FOG, 1, clamp(c.fog * 1.2, 0, 1), c.fogC, c.fogC, U * 1.1, dt);
+  gr = g.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, rgba(c.fogC, c.fog * .16)); gr.addColorStop(.55, rgba(c.fogC, c.fog * .42)); gr.addColorStop(1, rgba(c.fogC, c.fog * .8));
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  lightning(dt);
+}
+
+/* =====================================================================
+   Snow simulation
+   Flakes are pre-sorted by depth z (0 far, 1 near), so far flakes draw
+   first. Near flakes are large and soft (out of focus); far flakes are
+   small and sharp. Wind, gusts, swirl fields and eddies move them.
+   ===================================================================== */
+const FLAKES = Array.from({ length: 2400 }, () => {
+  const z = Math.pow(Math.random(), 1.6), soft = z > .86;
+  return {
+    x: 0, y: 0, z, on: false, fade: 0, soft,
+    ph: rand(0, 6.3), fq: rand(.6, 1.8), am: rand(10, 38),         // sway phase / frequency / amplitude
+    sp: rand(.75, 1.25),                                           // speed variation
+    r: (.7 + 3.4 * Math.pow(z, 1.5)) * rand(.75, 1.25) * (soft ? 2.3 : 1),
+    op: soft ? rand(.22, .42) : clamp(rand(.45, .95) * (.55 + .45 * z), 0, 1)
+  };
+}).sort((a, b) => a.z - b.z);
+
+// Two reusable sprites (sharp / soft), re-tinted only when the snow tint changes (warm sunset, blue moonlight).
+const sSharp = document.createElement('canvas'), sSoft = document.createElement('canvas');
+sSharp.width = sSharp.height = sSoft.width = sSoft.height = 48;
+let sprTint = [-99, 0, 0], lastN = 0;
+function paint(cv, stops, t) {                                  // soft radial sprite in colour t
+  const n = cv.width, h = n / 2, g = cv.getContext('2d'), r = g.createRadialGradient(h, h, 0, h, h, h);
+  g.clearRect(0, 0, n, n);
+  stops.forEach(([o, a]) => r.addColorStop(o, rgba(t, a)));
+  g.fillStyle = r; g.fillRect(0, 0, n, n);
+}
+function buildSprites(t) {
+  sprTint = t.slice();
+  paint(sSharp, [[0, 1], [.3, .9], [.65, .3], [1, 0]], t);
+  paint(sSoft, [[0, .55], [.5, .2], [1, 0]], t);
+}
+
+function drawSnow(dt) {
+  const c = cur;
+  nx.clearRect(0, 0, W, H);
+  const t = c.tint;
+  if (Math.abs(t[0] - sprTint[0]) + Math.abs(t[1] - sprTint[1]) + Math.abs(t[2] - sprTint[2]) > 3) buildSprites(t);
+
+  const nAct = Math.min(MAXN, Math.ceil(clamp(c.snow, 0, 1) * MAXN));
+  for (let i = nAct; i < lastN; i++) FLAKES[i].on = false;        // deactivate surplus flakes
+  lastN = nAct;
+
+  const gust = 1 + .35 * Math.sin(time * .45) + .2 * Math.sin(time * 1.13 + 1.7);
+  const wind = c.wind * 420 * gust;                               // px/s at the nearest depth
+
+  for (let i = 0; i < nAct; i++) {
+    const p = FLAKES[i];
+    if (!p.on) { p.on = true; p.fade = 0; p.x = Math.random() * W; p.y = Math.random() * H; }
+
+    const d = .35 + .9 * p.z;                                     // parallax: near flakes move faster
+    const vy = Math.max(8, (40 + 120 * p.z) * c.speed * p.sp + Math.sin(p.x * .004 + time * .9) * c.turb * 35);
+    const swirl = Math.sin(p.y * .006 + time * .6 + p.ph) * c.turb * 70
+                + Math.sin(time * p.fq + p.ph) * p.am * (.4 + c.turb * .6);
+    const vx = (wind + swirl) * d;
+    p.x += vx * dt; p.y += vy * dt;
+
+    if (p.y > H + 12) { p.y = -12; p.x = Math.random() * W; }     // recycle, never allocate
+    if (p.x < -24) p.x += W + 48; else if (p.x > W + 24) p.x -= W + 48;
+    p.fade = dt ? Math.min(1, p.fade + dt * 1.4) : 1;
+
+    const a = p.op * p.fade, r = p.r * c.size;
+    if (a < .01) continue;
+    const spr = p.soft ? sSoft : sSharp, st = Math.min(3, (Math.abs(vx) / 170) | 0);
+    for (let k = st; k >= 0; k--) {                               // motion trails in strong wind
+      nx.globalAlpha = a * (1 - k * .22);
+      nx.drawImage(spr, p.x - vx * k * .014 - r, p.y - vy * k * .014 - r, 2 * r, 2 * r);
+    }
+  }
+  nx.globalAlpha = 1;
+}
+
+/* =====================================================================
+   Additional particle systems. Each has its own physics:
+   - Rain: fast depth-scaled streaks, wind slant, ground splashes
+   - Petals: flip-flutter, glide sideways, slow when broadside to the air
+   - Leaves: pendulum swing, tumbling spin, strong gust response
+   - Pollen: Brownian drift, slow lift, soft twinkle (fireflies at night)
+   ===================================================================== */
+const gust = () => 1 + .35 * Math.sin(time * .45) + .2 * Math.sin(time * 1.13 + 1.7);
+
+// Keeps `n` pool entries live (scaled down on mobile); returns n.
+function count(pool, amt) {
+  const n = Math.min(pool.length, Math.ceil(clamp(amt, 0, 1) * pool.length * QF));
+  for (let i = n; i < (pool.last || 0); i++) pool[i].on = false;
+  pool.last = n;
+  return n;
+}
+function wrapXY(p, r) {
+  if (p.y > H + r) { p.y = -r; p.x = Math.random() * W; }
+  if (p.x < -r * 2) p.x += W + r * 4; else if (p.x > W + r * 2) p.x -= W + r * 4;
+}
+// Flipping, rotating shape: transform = rotation * vertical squash (fake 3D flip).
+function shapeTransform(p, f) {
+  const co = Math.cos(p.rot), si = Math.sin(p.rot);
+  nx.setTransform(DP * co, DP * si, -DP * si * f, DP * co * f, p.x * DP, p.y * DP);
+}
+const endShapes = () => { nx.setTransform(DP, 0, 0, DP, 0, 0); nx.globalAlpha = 1; };
+
+/* --- Rain --- */
+const RAIN = Array.from({ length: 1800 }, () => ({ z: Math.pow(Math.random(), 1.1), sp: rand(.85, 1.15), x: 0, y: 0, vx: 0, vy: 0, on: false }));
+const SPL = Array.from({ length: 90 }, () => ({ x: 0, y: 0, t: 1, r: 0 }));   // splash ring buffer
+let splI = 0;
+function drawRain(dt) {
+  const c = cur, n = count(RAIN, c.rain), rc = mix(c.fogC, [255, 255, 255], .55), wind = c.wind * 320 * gust();
+  nx.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const p = RAIN[i];
+    if (!p.on) { p.on = true; p.x = Math.random() * W; p.y = Math.random() * H; }
+    p.vy = (520 + 820 * p.z) * c.speed * p.sp;
+    p.vx = wind * (.4 + .8 * p.z) + Math.sin(p.y * .004 + time) * c.turb * 40;
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    const ly = H * (.8 + .2 * p.z);                                // far drops land higher on screen
+    if (p.y > ly) {
+      if (dt && p.z > .45 && Math.random() < .5) { const s = SPL[splI++ % 90]; s.x = p.x; s.y = ly; s.t = 0; s.r = 2 + 7 * p.z; }
+      p.y = -rand(0, H * .25); p.x = Math.random() * W;
+    }
+    if (p.x < -40) p.x += W + 80; else if (p.x > W + 40) p.x -= W + 80;
+  }
+  if (n) [[0, .4, .8, .22], [.4, .75, 1.1, .34], [.75, 1.01, 1.6, .5]].forEach(([a, b, w, al]) => {   // batched by depth band
+    nx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const p = RAIN[i];
+      if (p.z < a || p.z >= b) continue;
+      nx.moveTo(p.x, p.y); nx.lineTo(p.x - p.vx * .018, p.y - p.vy * .018);
+    }
+    nx.strokeStyle = rgba(rc, al); nx.lineWidth = w; nx.stroke();
+  });
+  nx.lineWidth = 1;
+  for (const s of SPL) {
+    if (s.t >= 1) continue;
+    s.t += dt * 3;
+    if (s.t >= 1) continue;
+    nx.strokeStyle = rgba(rc, (1 - s.t) * .35);
+    nx.beginPath(); nx.ellipse(s.x, s.y, s.r * s.t, s.r * s.t * .3, 0, 0, 6.2832); nx.stroke();
+  }
+}
+
+/* --- Petals --- */
+const PETAL_COLS = ['#f7c6d4', '#fadde6', '#ffffff', '#eea9bf'];
+const PETALS = Array.from({ length: 700 }, () => ({
+  z: Math.pow(Math.random(), 1.3), ph: rand(0, 6.3), fq: rand(.5, 1.4), rot: rand(0, 6.3), spin: rand(-1.4, 1.4),
+  flip: rand(0, 6.3), fs: rand(1.8, 4.2), s: rand(4, 8.5), col: PETAL_COLS[(Math.random() * 4) | 0], x: 0, y: 0, on: false, fade: 0 }));
+function drawPetals(dt) {
+  const c = cur, n = count(PETALS, c.petal);
+  if (!n) return;
+  const wind = c.wind * 300 * gust();
+  for (let i = 0; i < n; i++) {
+    const p = PETALS[i];
+    if (!p.on) { p.on = true; p.fade = 0; p.x = Math.random() * W; p.y = Math.random() * H; }
+    const d = .4 + .8 * p.z;
+    p.flip += p.fs * dt; p.rot += p.spin * dt;
+    const flat = Math.abs(Math.cos(p.flip));                       // 1 = face-on to the viewer
+    const vy = (20 + 38 * p.z) * c.speed * (.55 + .45 * (1 - flat));
+    const vx = (wind + Math.sin(p.flip) * 34 + Math.sin(time * p.fq + p.ph) * 20 * c.turb) * d;
+    p.x += vx * dt; p.y += vy * dt; wrapXY(p, 12);
+    p.fade = dt ? Math.min(1, p.fade + dt * 1.4) : 1;
+    const s = p.s * (.55 + .9 * p.z) * c.size;
+    nx.globalAlpha = p.fade * (.5 + .45 * p.z);
+    shapeTransform(p, .15 + .85 * flat);
+    nx.fillStyle = p.col; nx.beginPath(); nx.moveTo(0, -s);
+    nx.quadraticCurveTo(s * .95, -s * .1, 0, s); nx.quadraticCurveTo(-s * .95, -s * .1, 0, -s); nx.fill();
+  }
+  endShapes();
+}
+
+/* --- Leaves --- */
+const LEAF_COLS = ['#c8561e', '#e08a1e', '#d9a521', '#8a4a1c', '#a8321c', '#b8761e'];
+const LEAVES = Array.from({ length: 320 }, () => ({
+  z: Math.pow(Math.random(), 1.2), ph: rand(0, 6.3), fq: rand(.7, 1.5), rot: 0, sr: rand(0, 6.3), spin: rand(-.8, .8),
+  flip: rand(0, 6.3), fs: rand(.8, 2), s: rand(7, 14), col: LEAF_COLS[(Math.random() * 6) | 0], x: 0, y: 0, on: false, fade: 0 }));
+function drawLeaves(dt) {
+  const c = cur, n = count(LEAVES, c.leaf);
+  if (!n) return;
+  const g = gust(), wind = c.wind * 380 * g * g;                   // leaves catch gusts hard
+  for (let i = 0; i < n; i++) {
+    const p = LEAVES[i];
+    if (!p.on) { p.on = true; p.fade = 0; p.x = Math.random() * W; p.y = Math.random() * H; }
+    const d = .4 + .8 * p.z;
+    p.ph += p.fq * dt; p.flip += p.fs * dt;
+    const sw = Math.sin(p.ph);                                     // pendulum swing
+    p.sr += p.spin * (.4 + Math.abs(c.wind) * 2.5) * dt;           // tumble faster in wind
+    p.rot = sw * .9 + p.sr;
+    const vy = (50 + 75 * p.z) * c.speed * (.65 + .35 * Math.abs(Math.cos(p.ph)));
+    const vx = (wind + sw * 55 * (.6 + c.turb * .5) + Math.sin(p.y * .008 + time * .7) * c.turb * 40) * d;
+    p.x += vx * dt; p.y += vy * dt; wrapXY(p, 18);
+    p.fade = dt ? Math.min(1, p.fade + dt * 1.2) : 1;
+    const s = p.s * (.55 + .9 * p.z) * c.size;
+    nx.globalAlpha = p.fade * (.65 + .35 * p.z);
+    shapeTransform(p, .2 + .8 * Math.abs(Math.cos(p.flip)));
+    nx.fillStyle = p.col; nx.beginPath(); nx.moveTo(0, -s);
+    nx.bezierCurveTo(s * .9, -s * .5, s * .7, s * .6, 0, s); nx.bezierCurveTo(-s * .7, s * .6, -s * .9, -s * .5, 0, -s); nx.fill();
+    nx.strokeStyle = 'rgba(40,20,5,.35)'; nx.lineWidth = .8;       // midrib and stem
+    nx.beginPath(); nx.moveTo(0, -s); nx.lineTo(0, s * 1.3); nx.stroke();
+  }
+  endShapes();
+}
+
+/* --- Pollen / motes / fireflies --- */
+const sPoll = document.createElement('canvas'); sPoll.width = sPoll.height = 48;
+let pollTint = [-99, 0, 0];
+const POLLEN = Array.from({ length: 260 }, () => ({ z: rand(.1, 1), ph: rand(0, 6.3), fq: rand(.4, 1.2), vx: 0, vy: 0, x: 0, y: 0, on: false, fade: 0 }));
+function drawPollen(dt) {
+  const c = cur, n = count(POLLEN, c.pollen);
+  if (!n) return;
+  const t = c.ptint;
+  if (Math.abs(t[0] - pollTint[0]) + Math.abs(t[1] - pollTint[1]) + Math.abs(t[2] - pollTint[2]) > 3) { pollTint = t.slice(); paint(sPoll, [[0, .9], [.3, .5], [1, 0]], t); }
+  const k = Math.exp(-dt * 1.2), wind = c.wind * 160;
+  for (let i = 0; i < n; i++) {
+    const p = POLLEN[i];
+    if (!p.on) { p.on = true; p.fade = 0; p.x = Math.random() * W; p.y = Math.random() * H; }
+    const d = .4 + .8 * p.z;
+    p.vx = (p.vx + rand(-1, 1) * 60 * dt) * k; p.vy = (p.vy + rand(-1, 1) * 60 * dt) * k;   // Brownian wander
+    p.x += (p.vx + wind * d) * dt; p.y += (p.vy - 6 * d) * dt;                               // slow lift
+    if (p.y < -10) p.y = H + 10; else if (p.y > H + 10) p.y = -10;
+    if (p.x < -10) p.x += W + 20; else if (p.x > W + 10) p.x -= W + 20;
+    p.fade = dt ? Math.min(1, p.fade + dt * 1.2) : 1;
+    const r = (2.5 + 6 * p.z) * c.size;
+    nx.globalAlpha = p.fade * (.35 + .35 * Math.sin(time * p.fq + p.ph)) * (.4 + .6 * p.z);
+    nx.drawImage(sPoll, p.x - r, p.y - r, 2 * r, 2 * r);
+  }
+  nx.globalAlpha = 1;
+}
+
+/* --- Lightning: flash, double-strike flicker and a branching bolt --- */
+let lt = 3, flash = 0, lf2 = 0, bolt = null;
+function makeBolt() {
+  const seg = (x, y, n, sp) => { const a = [[x, y]]; for (let i = 0; i < n; i++) { x += rand(-sp, sp); y += rand(14, 38); a.push([x, y]); } return a; };
+  const main = seg(rand(.2, .8) * W, 0, (H * .7 / 26) | 0, 34), br = [];
+  main.forEach((q, i) => { if (i > 4 && Math.random() < .18) br.push(seg(q[0], q[1], rand(3, 7) | 0, 40)); });
+  return [main, ...br];
+}
+function lightning(dt) {
+  if (cur.storm > .3) {
+    lt -= dt;
+    if (lt <= 0) { lt = rand(3.5, 10) / cur.storm; flash = 1; lf2 = rand(.1, .2); bolt = makeBolt(); }
+  }
+  if (lf2 > 0 && (lf2 -= dt) <= 0) flash = .8;
+  flash = Math.max(0, flash - dt * 2.8);
+  if (flash <= .02) { bolt = null; return; }
+  sx.fillStyle = `rgba(210,225,255,${flash * .4})`; sx.fillRect(0, 0, W, H);
+  if (!bolt) return;
+  sx.lineJoin = 'round';
+  for (const [w, col] of [[7, `rgba(190,210,255,${flash * .35})`], [2, `rgba(255,255,255,${flash})`]]) {
+    sx.lineWidth = w; sx.strokeStyle = col;
+    for (const pl of bolt) { sx.beginPath(); pl.forEach(([x, y], i) => i ? sx.lineTo(x, y) : sx.moveTo(x, y)); sx.stroke(); }
+  }
+}
+
+/* --- Heat distortion: horizontal slice displacement growing toward the ground --- */
+function heat() {
+  const a = cur.heat;
+  if (a < .02) return;
+  hx.setTransform(1, 0, 0, 1, 0, 0); hx.drawImage(scene, 0, 0);
+  sx.save(); sx.setTransform(1, 0, 0, 1, 0, 0);
+  const pw = scene.width, y0 = scene.height * .5, y1 = scene.height * .9;
+  for (let y = y0; y < y1; y += 3) {
+    const k = (y - y0) / (y1 - y0), dx = Math.sin(y * .045 + time * 2.6) * Math.sin(y * .013 - time * .9) * a * (1.5 + 5 * k) * SC;
+    sx.drawImage(hc, 0, y, pw, 3, dx, y, pw, 3);
+  }
+  sx.restore();
+}
+
+/* =====================================================================
+   Frame step, HUD info, animation loop
+   ===================================================================== */
+const eTime = $('eTime'), eTemp = $('eTemp'), eWind = $('eWind'), eVis = $('eVis');
+let infoT = 0, lastBri = -1;
+
+function updateInfo() {
+  const c = cur, vis = 14 * Math.pow(1 - c.fog, 1.6) * (1 - .8 * clamp(Math.max(c.snow, c.rain), 0, 1));
+  eTemp.textContent = Math.round(c.temp) + '°C';
+  eWind.textContent = (c.wind < -.03 ? '← ' : c.wind > .03 ? '→ ' : '') + Math.round(Math.abs(c.wind) * 90) + ' km/h';
+  eVis.textContent = vis >= 10 ? '10+ km' : vis < 1 ? Math.round(vis * 100) * 10 + ' m' : vis.toFixed(1) + ' km';
+}
+
+// k = blend factor toward the target (1 = snap). dt = 0 renders a still frame.
+function step(dt, k) {
+  time += dt;
+  lerpTo(cur, target(), k);
+  drawScene(dt);
+  heat();
+  drawSnow(dt); drawPollen(dt); drawPetals(dt); drawLeaves(dt); drawRain(dt);   // snow clears the canvas, the rest layer on top
+  if (Math.abs(cur.bright - lastBri) > .002) {                    // brightness as a cheap GPU filter
+    lastBri = cur.bright; stage.style.filter = `brightness(${cur.bright.toFixed(3)})`;
+  }
+  infoT -= dt;
+  if (infoT <= 0) { infoT = .25; updateInfo(); }
+}
+
+let raf = 0, last = 0, userPaused = false;
+function frame(ts) {
+  raf = requestAnimationFrame(frame);
+  const dt = Math.min(.05, (ts - last) / 1000 || 0);
+  last = ts;
+  step(dt, 1 - Math.exp(-dt * 1.8));                              // ~2s eased transitions
+}
+function start() { if (raf || userPaused || document.hidden) return; last = performance.now(); raf = requestAnimationFrame(frame); }
+function stop()  { cancelAnimationFrame(raf); raf = 0; }
+document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+
+/* =====================================================================
+   UI wiring
+   ===================================================================== */
+const hud = $('hud'), panel = $('panel'), body = document.body;
+const rDen = $('rDen'), rWind = $('rWind'), rCloud = $('rCloud'), rBri = $('rBri');
+const bPause = $('bPause'), bFull = $('bFull'), bHide = $('bHide');
+let swapT = 0, firstPreset = true;
+
+// Seasons: tabs, per-season preset lists, remembered selection per season
+const SEASONS = [
+  { id: 'spring', label: 'Spring', acc: '#f6a9c2' }, { id: 'summer', label: 'Summer', acc: '#ffc95c' },
+  { id: 'autumn', label: 'Autumn', acc: '#ee8a3c' }, { id: 'winter', label: 'Winter', acc: '#a8d4ff' }
+];
+const KIND_LABEL = { snow: 'Snowfall', rain: 'Rainfall', petal: 'Petals', leaf: 'Leaves', pollen: 'Pollen' };
+const byS = SEASONS.map(se => PRESETS.flatMap((p, i) => p.season === se.id ? [i] : []));
+const lastIdx = byS.map(l => l[0]);
+let sIdx = -1, chips = [];
+const tabs = SEASONS.map((se, i) => {
+  const b = document.createElement('button');
+  b.className = 'season'; b.type = 'button'; b.textContent = se.label; b.setAttribute('role', 'tab');
+  b.style.setProperty('--sa', se.acc);
+  b.addEventListener('click', () => setPreset(lastIdx[i]));
+  $('seasons').appendChild(b);
+  return b;
+});
+function renderChips() {                                          // rebuilt only on season change
+  const box = $('presets');
+  box.replaceChildren();
+  chips = byS[sIdx].map((pi, n) => {
+    const p = PRESETS[pi], b = document.createElement('button');
+    b.className = 'chip'; b.type = 'button'; b.textContent = p.short; b.title = `${p.name} (${n + 1})`; b.dataset.i = pi;
+    b.addEventListener('click', () => setPreset(pi));
+    box.appendChild(b);
+    return b;
+  });
+}
+const setSeason = s => setPreset(lastIdx[s]);
+
+function syncLabels() {
+  $('oDen').textContent = rDen.value + '%';
+  const w = +rWind.value;
+  $('oWind').textContent = (w < 0 ? '← ' : w > 0 ? '→ ' : '') + Math.round(Math.abs(w) * .9) + ' km/h';
+  $('oCloud').textContent = rCloud.value + '%';
+  $('oBri').textContent = rBri.value + '%';
+}
+function readControls() {
+  ctl.density = rDen.value / 100; ctl.wind = rWind.value / 100;
+  ctl.cloud = rCloud.value / 100; ctl.bright = rBri.value / 100;
+  syncLabels();
+  if (!raf) step(0, 1);                                           // keep paused view in sync
+}
+[rDen, rWind, rCloud, rBri].forEach(r => r.addEventListener('input', readControls));
+
+function setPreset(i) {
+  idx = i;
+  const p = PRESETS[i], se = SEASONS.findIndex(x => x.id === p.season);
+  lastIdx[se] = i;
+  if (se !== sIdx) {                                              // season changed: swap chips and accent colour
+    sIdx = se; renderChips();
+    body.style.setProperty('--acc', SEASONS[se].acc);
+    tabs.forEach((b, j) => b.setAttribute('aria-selected', j === se));
+    $('bSeason').textContent = SEASONS[se].label;
+  }
+  $('lDen').textContent = KIND_LABEL[p.kind];
+  rDen.value = Math.round(p.density * 100); rWind.value = Math.round(p.wind * 100);
+  rCloud.value = Math.round(p.cloud * 100); rBri.value = Math.round(p.bright * 100);
+  chips.forEach(b => b.setAttribute('aria-pressed', +b.dataset.i === i));
+  const apply = () => { $('wName').textContent = p.name; $('wSub').textContent = p.sub; eTime.textContent = p.time; hud.classList.remove('swap'); };
+  clearTimeout(swapT);
+  if (firstPreset) { apply(); firstPreset = false; }
+  else { hud.classList.add('swap'); swapT = setTimeout(apply, 280); }   // cross-fade the title
+  readControls();
+}
+
+// Pause / resume (the loop is fully cancelled while paused)
+function setPaused(v) { userPaused = v; bPause.textContent = v ? 'Resume' : 'Pause'; v ? stop() : start(); }
+bPause.addEventListener('click', () => setPaused(!userPaused));
+
+// Fullscreen (with webkit fallback; hidden where unsupported, e.g. iPhone Safari)
+const root = document.documentElement;
+const fsOn = () => document.fullscreenElement || document.webkitFullscreenElement;
+if (!(root.requestFullscreen || root.webkitRequestFullscreen)) bFull.hidden = true;
+function toggleFS() {
+  const r = fsOn() ? (document.exitFullscreen || document.webkitExitFullscreen).call(document)
+                   : (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+  Promise.resolve(r).catch(() => {});
+}
+bFull.addEventListener('click', toggleFS);
+['fullscreenchange', 'webkitfullscreenchange'].forEach(e =>
+  document.addEventListener(e, () => { bFull.textContent = fsOn() ? 'Exit fullscreen' : 'Fullscreen'; }));
+
+// Hide controls; tap the sky to bring them back
+bHide.addEventListener('click', () => body.classList.add('hide'));
+stage.addEventListener('pointerdown', () => body.classList.remove('hide'));
+
+// Controls fade after a few idle seconds and return on any input
+let idleT = 0;
+function wake() {
+  body.classList.remove('idle');
+  clearTimeout(idleT);
+  idleT = setTimeout(() => {
+    if (panel.matches(':hover') || panel.contains(document.activeElement)) wake();
+    else body.classList.add('idle');
+  }, 5000);
+}
+['pointermove', 'pointerdown', 'keydown', 'touchstart'].forEach(e => addEventListener(e, wake, { passive: true }));
+
+// Keyboard shortcuts
+addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === ' ' && !/^(BUTTON|INPUT)$/.test(e.target.tagName)) { e.preventDefault(); setPaused(!userPaused); }
+  else if (k === 'f') toggleFS();
+  else if (k === 'h') body.classList.toggle('hide');
+  else if (k === 's') setSeason((sIdx + 1) % 4);
+  else if (/^[1-9]$/.test(k) && byS[sIdx][+k - 1] !== undefined) setPreset(byS[sIdx][+k - 1]);
+});
+
+// Debounced resize
+let rt = 0;
+addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resize, 120); });
+
+// Film grain texture (tiny noise tile, generated once)
+{
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d'), d = g.createImageData(128, 128);
+  for (let i = 0; i < d.data.length; i += 4) { d.data[i] = d.data[i + 1] = d.data[i + 2] = Math.random() * 255; d.data[i + 3] = 255; }
+  g.putImageData(d, 0, 0);
+  $('grain').style.backgroundImage = `url(${c.toDataURL()})`;
+}
+
+/* ===== Boot ===== */
+resize();
+setPreset(0);
+Object.assign(cur, JSON.parse(JSON.stringify(target())));        // start fully settled on preset 1
+step(0, 1);
+wake();
+start();
+})();
+</script>
+</body>
+</html>

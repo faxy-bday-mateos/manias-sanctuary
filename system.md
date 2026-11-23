@@ -20,22 +20,21 @@ The frontend and Firestore adapter have been scaffolded:
 - `src/firebaseClient.ts` signs visitors in anonymously and writes validated event fields to Firestore.
 - The Observatory iframe forwards sanitized events to the parent app. It does not write to Firebase directly.
 
-The remote tracker is **not live or end-to-end verified**:
+The app and Firebase backend are configured for `mania-4f364`, but the remote tracker is **not yet end-to-end verified**:
 
-1. The selected Firebase project is `faxy-ash`. Its existing Realtime Database is separate from the Firestore collection intended for this tracker.
-2. The 100-orgs Realtime Database has a root-level public-read rule. **Do not store activity events in that Realtime Database or loosen/change its rules as a shortcut.** Existing project features may depend on those rules.
-3. This workspace has a `.firebaserc` targeting `faxy-ash`, a `firebase.json` pointing at `firestore.rules`, and a local ignored `.env.local` with project config. The App Check site key is blank.
-4. It has not been confirmed that Cloud Firestore is enabled for `faxy-ash`, that the rules have been deployed, or that App Check enforcement is enabled.
-5. Real visitor writes, admin sign-in, Firestore reads, deletion, and deployment configuration have not been tested end-to-end. The available Firebase Console browser session requires Google sign-in.
+1. The `.firebaserc` target and local `.env.local` project ID match; required local settings are populated, and the local admin UID matches the UID in `firestore.rules`.
+2. Cloud Firestore is active in `asia-south1`, and the local `firestore.rules` match the deployed rules.
+3. Firebase Authentication has Anonymous and Email/Password providers enabled.
+4. The Web app is registered with App Check using Fraud Defense (formerly reCAPTCHA Enterprise); `src/firebaseClient.ts` initializes `ReCaptchaEnterpriseProvider`. Firestore App Check enforcement is enabled.
+5. Real visitor writes, admin sign-in, Firestore reads, deletion, and deployment configuration have not been tested end-to-end.
+6. Keep activity in Cloud Firestore; do not use or change the separate 100-orgs Realtime Database or its rules.
 
 ### Next steps for the tracker
 
-1. In Firebase Console, confirm or enable Cloud Firestore in `faxy-ash`; do not use its Realtime Database for this data.
-2. Confirm Anonymous and Email/Password Firebase Auth providers are enabled and verify the configured admin UID is the intended admin account.
-3. Configure reCAPTCHA v3 App Check for the Firebase Web app, put its site key in ignored `.env.local` and the hosting build environment, and enable App Check enforcement for Firestore.
-4. Publish `firestore.rules` to the Firestore service in `faxy-ash`. The rules are security-critical: visitors can create only validated event documents; only the configured admin UID can read, update, or delete.
-5. Build/deploy with the same `VITE_FIREBASE_*` settings. Test with an opted-in browser and the authorized admin account.
-6. Finish any admin UX changes and test the loading, empty, error, filter, pagination, export, and delete flows against the real backend. Do not report the dashboard as operational before these steps pass.
+1. Verify the App Check site key in ignored `.env.local` matches the registered Fraud Defense (reCAPTCHA Enterprise) Web app configuration; do not expose its value.
+2. Test an opted-in visitor write and an authorized admin sign-in/read against the real Firestore backend.
+3. Build/deploy with the same `VITE_FIREBASE_*` settings, then verify the deployed site can write and read as expected.
+4. Test loading, empty, error, filter, pagination, export, and delete flows against the real backend. Do not report the dashboard as operational before these steps pass.
 
 Activity is consent-based and does not identify a real-world person. The admin can see events from consenting browser sessions, not prove that a particular person visited. Events intentionally omit names, typed text, answers, referrers, scrolling, and keystrokes.
 
@@ -113,9 +112,9 @@ Keep the consent prompt clear and voluntary. Never turn on tracking by default o
 
 ## Known issues and caution areas
 
-- Admin tracker implementation exists but is incomplete until Firebase services, rules, App Check, hosting variables, and end-to-end behavior are verified.
-- The Firebase config in `.env.local` identifies a web app; it is not proof that Firestore or App Check is enabled.
-- The existing `faxy-ash` Realtime Database has public reads. Keep the new activity data in Firestore with the restrictive rules in `firestore.rules`.
+- Admin tracker implementation exists, and Firebase services, rules, Auth providers, and App Check are configured; end-to-end behavior and hosting variables still need verification.
+- The Firebase config in `.env.local` identifies the `mania-4f364` web app; it is not proof that visitor writes and admin reads work.
+- Cloud Firestore is active in `asia-south1`; keep activity in Firestore with the restrictive rules in `firestore.rules`.
 - The Observatory is a large, globally scripted standalone page. Inspect its script loading and initialization order before refactoring; test its iframe behavior after changes.
 - The two Four Seasons HTML files differ. The app embeds the copy under `public/`.
 - `src/organData.ts` contains very long, intimate, body-focused writing. The user has previously asked for appreciative, non-romantic wording in related UI. Avoid intensifying romantic/possessive tone; review content changes carefully.

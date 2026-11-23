@@ -3,11 +3,12 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function isAdmin() {
       return request.auth != null
-        && request.auth.uid == "tNigpJD0iudxzcoP49DDmA4uDQK2";
+        && request.auth.uid == "LJCqjZ6F4cWjob0yCh3oZs5gsXF3";
     }
 
     match /activityEvents/{eventId} {
       allow create: if request.auth != null
+        && request.auth.token.firebase.sign_in_provider == "anonymous"
         && request.resource.data.keys().hasOnly(["timestamp", "page", "type", "action"])
         && request.resource.data.keys().hasAll(["timestamp", "page", "type"])
         && request.resource.data.timestamp == request.time
@@ -24,7 +25,7 @@ service cloud.firestore {
             && request.resource.data.action.matches("^[a-zA-Z0-9:_-]{1,80}$"))
         );
 
-      allow get, list, update, delete: if isAdmin();
+      allow get, list, delete: if isAdmin();
     }
   }
 }

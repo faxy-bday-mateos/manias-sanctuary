@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
-import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check'
 import {
   browserSessionPersistence,
   getAuth,
@@ -17,7 +17,7 @@ const app = firebaseAppConfigured
 
 if (app && appCheckSiteKey) {
   initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(appCheckSiteKey),
+    provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
     isTokenAutoRefreshEnabled: true,
   })
 }

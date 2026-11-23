@@ -41,7 +41,10 @@ function App() {
   const lastRecordedVisit = useRef('')
 
   useEffect(() => {
-    const onHash = () => setPage(readPage())
+    const onHash = () => {
+      if (window.location.hash === '#main-content') return
+      setPage(readPage())
+    }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
@@ -127,7 +130,9 @@ function App() {
   const activeTitle = page === 'admin' ? 'Admin Activity' : pages.find((item) => item.id === page)?.title
 
   return (
-    <main className={`birthday-app${page === 'sky' && skyCleanView ? ' birthday-app--sky-clean' : ''}`}>
+    <>
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <main id="main-content" tabIndex={-1} className={`birthday-app${page === 'sky' && skyCleanView ? ' birthday-app--sky-clean' : ''}`}>
       {page !== 'sky' && <header className={`site-nav${page === 'seasons' ? ' site-nav--fullscreen' : ''}`}>
         {page !== 'seasons' && <a className="site-brand" href="#/" aria-label="Manuu's birthday home">✦ <span>for Manuu</span></a>}
         {page !== 'home' && <button className="back-home" type="button" onClick={goHome}>← Birthday home</button>}
@@ -204,7 +209,8 @@ function App() {
           </div>
         </aside>
       )}
-    </main>
+      </main>
+    </>
   )
 }
 

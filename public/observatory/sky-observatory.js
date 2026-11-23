@@ -526,10 +526,15 @@
   document.head.appendChild(catStyle);
 
   function spawnCat() {
-    var cat = document.createElement('div');
-    cat.style.cssText = 'position:fixed;bottom:10px;z-index:9999;pointer-events:auto;cursor:pointer;' +
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var cat = document.createElement('button');
+    cat.type = 'button';
+    cat.className = 'black-cat-easter-egg';
+    cat.setAttribute('aria-label', 'Send the passing cat away');
+    cat.style.cssText = 'appearance:none;border:0;padding:0;background-color:transparent;color:inherit;' +
+      'position:fixed;bottom:10px;z-index:9999;pointer-events:auto;cursor:pointer;' +
       'width:'+catW+'px;height:'+catH+'px;' +
-      'background:url("cat-animation.png") 0 0 / '+(catCols*catW)+'px '+(catH*4)+'px no-repeat;' +
+      'background:url("cat-animation.webp") 0 0 / '+(catCols*catW)+'px '+(catH*4)+'px no-repeat;' +
       'animation:catWalk 0.7s steps('+catCols+') infinite;' +
       'transition:left 10s cubic-bezier(0.2,0.8,0.3,1);left:-100px;';
     document.body.appendChild(cat);
@@ -544,7 +549,8 @@
       clicked = true;
       cat.style.animation = 'none';
       cat.style.transition = 'none';
-      cat.style.left = (e.clientX - catW/2) + 'px';
+      var centerX = e.detail === 0 ? cat.getBoundingClientRect().left + catW/2 : e.clientX;
+      cat.style.left = (centerX - catW/2) + 'px';
       cat.style.backgroundPosition = '-'+(2*catW)+'px -'+(2*catH)+'px';
       cat.style.backgroundSize = (catCols*catW)+'px '+(catH*4)+'px';
       setTimeout(function() {

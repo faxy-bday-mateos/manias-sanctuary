@@ -46,6 +46,11 @@
   outline-offset: 4px;
 }
 
+.black-cat-easter-egg:focus-visible {
+  outline: 3px solid var(--gold, #ffe680);
+  outline-offset: 4px;
+}
+
 
 
 #jukeboxBtn .btn-icon {
@@ -171,8 +176,8 @@
 }
 
 .jukebox-header .close-btn {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid rgba(255, 210, 150, 0.15);
   background: rgba(255, 210, 150, 0.05);
@@ -473,8 +478,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
 }
 
 .controls button:hover {
@@ -875,8 +880,8 @@
   #puzzleBtn {
     right: 12px;
     bottom: 128px;
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     font-size: .8rem;
   }
 
@@ -935,8 +940,8 @@
   position: fixed;
   right: 16px;
   bottom: 11rem;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: linear-gradient(135deg, rgba(255, 230, 128, 0.12) 0%, rgba(232, 93, 58, 0.1) 100%);
   backdrop-filter: blur(10px);
@@ -2819,8 +2824,8 @@ EASTER EGG (TURN YOURSELF ON)
   position: absolute;
   top: 18px;
   right: 24px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 142, 180, 0.2);
@@ -2910,8 +2915,8 @@ EASTER EGG (TURN YOURSELF ON)
   }
 
   .easter-egg-close {
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
     font-size: 1.2rem;
     top: 14px;
     right: 16px;
@@ -3302,24 +3307,24 @@ body.day-mode .tribute.intimate-card {
   .fav-toggle-btn {
     left: 16px !important;
     bottom: 75px !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
     font-size: 1rem !important;
   }
 
   .theme-toggle-btn {
     left: 16px !important;
     bottom: 125px !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
     font-size: 1rem !important;
   }
 
   .dice-btn {
     left: 16px !important;
     bottom: 175px !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
     font-size: 1rem !important;
   }
 
@@ -3328,14 +3333,14 @@ body.day-mode .tribute.intimate-card {
     bottom: 342px !important;
     padding: 8px 14px !important;
     font-size: 0.78rem !important;
-    min-height: 40px !important;
+    min-height: 44px !important;
   }
 
   .toc-toggle {
     left: 16px !important;
     bottom: 25px !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
     font-size: 1rem !important;
   }
 }
@@ -3356,4 +3361,16 @@ body.day-mode .tribute.intimate-card {
 
 .filtering-mood .tribute[data-mood]:not(.mood-match) {
   display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

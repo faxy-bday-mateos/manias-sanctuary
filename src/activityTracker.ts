@@ -1,6 +1,5 @@
 import { remoteActivityConfigured } from './firebase'
 
-export type ActivityConsent = 'accepted' | 'declined' | null
 export type RemoteActivityStatus = 'syncing' | 'synced' | 'error'
 
 export type ActivityEvent = {
@@ -10,7 +9,6 @@ export type ActivityEvent = {
   action?: string
 }
 
-const CONSENT_KEY = 'birthday-activity-consent'
 const EVENTS_KEY = 'birthday-activity-log'
 const MAX_EVENTS = 1000
 let pendingRemoteSaves = 0
@@ -28,24 +26,6 @@ function notifyRemoteStatus(status: RemoteActivityStatus) {
 
 export function getRemoteActivityStatus() {
   return currentRemoteActivityStatus
-}
-
-export function getActivityConsent(): ActivityConsent {
-  try {
-    const consent = localStorage.getItem(CONSENT_KEY)
-    return consent === 'accepted' || consent === 'declined' ? consent : null
-  } catch {
-    return null
-  }
-}
-
-export function setActivityConsent(consent: Exclude<ActivityConsent, null>) {
-  try {
-    localStorage.setItem(CONSENT_KEY, consent)
-  } catch (error) {
-    console.warn('Could not save activity tracking preferences.', error)
-  }
-  notifyChange()
 }
 
 export function getActivityEvents(): ActivityEvent[] {
@@ -66,8 +46,6 @@ export function getActivityEvents(): ActivityEvent[] {
 }
 
 function saveEvent(event: ActivityEvent) {
-  if (getActivityConsent() !== 'accepted') return
-
   try {
     const events = getActivityEvents()
     events.push(event)
@@ -86,7 +64,7 @@ function saveEvent(event: ActivityEvent) {
         remoteSaveFailed = false
       })
       .catch((error: unknown) => {
-        console.error('Could not sync opted-in activity to the remote admin log.', error)
+        console.error('Could not sync activity to the remote admin log.', error)
         remoteSaveFailed = true
       })
       .finally(() => {

@@ -1,12 +1,24 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check'
 import {
-  browserSessionPersistence,
+  browserLocalPersistence,
   getAuth,
   setPersistence,
   signInAnonymously,
 } from 'firebase/auth'
-import { addDoc, collection, getFirestore, serverTimestamp } from 'firebase/firestore'
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  getFirestore,
+  limit,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  Timestamp,
+} from 'firebase/firestore'
 import { appCheckSiteKey, firebaseAppConfigured, firebaseConfig } from './firebase'
 
 const app = firebaseAppConfigured
@@ -27,30 +39,100 @@ export const firestore = app ? getFirestore(app) : null
 
 let anonymousSignIn: Promise<void> | null = null
 
+async function ensureRemoteUser() {
+  if (!firebaseAuth) throw new Error('Firebase is not configured.')
+  if (!firebaseAuth.currentUser) {
+    if (!anonymousSignIn) {
+      anonymousSignIn = setPersistence(firebaseAuth, browserLocalPersistence)
+        .then(() => signInAnonymously(firebaseAuth))
+        .then(() => undefined)
+        .finally(() => {
+          anonymousSignIn = null
+        })
+    }
+    await anonymousSignIn
+  }
+  if (!firebaseAuth.currentUser) throw new Error('Could not start a visitor session.')
+  return firebaseAuth.currentUser
+}
+
 export async function saveRemoteActivity(event: {
   page: string
   type: 'page_visit' | 'interaction'
   action?: string
 }) {
-  if (!firebaseAuth || !firestore) throw new Error('Firebase is not configured.')
-
-  if (!firebaseAuth.currentUser) {
-    if (!anonymousSignIn) {
-      anonymousSignIn = setPersistence(firebaseAuth, browserSessionPersistence)
-        .then(() => signInAnonymously(firebaseAuth))
-        .then(() => undefined)
-        .catch((error: unknown) => {
-          anonymousSignIn = null
-          throw error
-        })
-    }
-    await anonymousSignIn
-  }
+  if (!firestore) throw new Error('Firebase is not configured.')
+  const user = await ensureRemoteUser()
+  if (!user.isAnonymous) return
 
   await addDoc(collection(firestore, 'activityEvents'), {
     timestamp: serverTimestamp(),
     page: event.page,
     type: event.type,
     ...(event.action ? { action: event.action } : {}),
+  })
+}
+
+export async function loadUnlockedWishes(): Promise<number[]> {
+  if (!firestore) return []
+  await ensureRemoteUser()
+  const snapshot = await getDocs(collection(firestore, 'wishUnlocks'))
+  return snapshot.docs.flatMap((document) => {
+    const match = /^wish-(\d{2,3})$/.exec(document.id)
+    const wishNumber = Number(match?.[1])
+    return Number.isInteger(wishNumber) && wishNumber >= 1 && wishNumber <= 100 ? [wishNumber] : []
+  })
+}
+
+export async function saveWishUnlock(wishNumber: number) {
+  if (!firestore) throw new Error('Firebase is not configured.')
+  if (!Number.isInteger(wishNumber) || wishNumber < 1 || wishNumber > 100) {
+    throw new Error('Invalid wish number.')
+  }
+  await ensureRemoteUser()
+  await setDoc(doc(firestore, 'wishUnlocks', `wish-${String(wishNumber).padStart(2, '0')}`), {
+    unlockedAt: serverTimestamp(),
+  })
+}
+
+export type SavedWallpaperUpload = {
+  id: string
+  name: string
+  dataUrl: string
+  createdAt: number
+}
+
+export async function saveWallpaperUpload(input: { name: string; dataUrl: string }) {
+  if (!firestore) throw new Error('Firebase is not configured.')
+  const user = await ensureRemoteUser()
+  const saved = await addDoc(collection(firestore, 'wallpaperUploads', user.uid, 'images'), {
+    createdAt: serverTimestamp(),
+    name: input.name.slice(0, 120),
+    dataUrl: input.dataUrl,
+  })
+  return saved.id
+}
+
+export async function loadWallpaperUploads(): Promise<SavedWallpaperUpload[]> {
+  if (!firestore) return []
+  const user = await ensureRemoteUser()
+  const snapshot = await getDocs(query(
+    collection(firestore, 'wallpaperUploads', user.uid, 'images'),
+    orderBy('createdAt', 'desc'),
+    limit(12),
+  ))
+  return snapshot.docs.flatMap((document) => {
+    const data = document.data()
+    if (
+      !(data.createdAt instanceof Timestamp) ||
+      typeof data.name !== 'string' ||
+      typeof data.dataUrl !== 'string'
+    ) return []
+    return [{
+      id: document.id,
+      name: data.name,
+      dataUrl: data.dataUrl,
+      createdAt: data.createdAt.toMillis(),
+    }]
   })
 }

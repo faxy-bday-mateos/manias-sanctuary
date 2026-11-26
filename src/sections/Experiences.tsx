@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { organGroups } from '../organData'
+import { remoteWishStoreConfigured } from '../firebase'
+import { WishScratchCard } from './WishScratchCard'
 
 const wishGroups = [
   { title: 'For the days ahead', icon: '☼', wishes: ['May the year ahead feel like a window opening on a fresh morning.', 'May there be more unhurried afternoons than you expect.', 'May you find a new favorite place, even if it is just a corner of a room.', 'May the plans you are excited about come together gently.', 'May a good surprise find you on a very ordinary day.', 'May you have the energy for what matters and permission to rest from the rest.', 'May the next chapter bring more ease than the last one.', 'May you have many reasons to look forward to tomorrow.', 'May the little things you are hoping for happen one by one.', 'May every season bring something that feels made for you.', 'May your calendar leave room for spontaneous joy.', 'May the road ahead have beautiful places to pause.', 'May you get to try something new just because it sounds fun.', 'May good news arrive when you could use it.', 'May the things you build this year make you proud.', 'May home feel warm wherever you happen to be.', 'May you collect small moments that become favorite memories.', 'May your curiosity keep opening unexpected doors.', 'May you be surprised by how much can go right.', 'May this year be kind to the person you are becoming.'] },
@@ -9,25 +11,93 @@ const wishGroups = [
   { title: 'For the joy in between', icon: '✿', wishes: ['May laughter sneak into the middle of a busy day.', 'May the perfect snack appear exactly when you want it.', 'May you get a message that makes you grin at your phone.', 'May you find something beautiful on the way to somewhere else.', 'May your next favorite memory begin with “remember when…”', 'May you have a reason to wear something that makes you feel wonderful.', 'May the little celebration become a big happy one.', 'May your favorite people make time for you.', 'May your jokes land and your silly moments be treasured.', 'May you always find one more reason to celebrate.', 'May flowers, clouds, or city lights catch your eye today.', 'May a tiny win turn an average day around.', 'May you receive a compliment you actually believe.', 'May something you thought was lost turn up again.', 'May your birthday sweetness last beyond today.', 'May you always find room for a little play.', 'May every good moment feel like it has nowhere else to be.', 'May you hear your favorite song in an unexpected place.', 'May joy show up in forms you did not think to ask for.', 'And most of all, may you feel celebrated—today and all year long.'] },
 ]
 
+type WishSyncStatus = 'loading' | 'ready' | 'saving' | 'error' | 'unavailable'
+
 export function HundredWishes() {
   const [open, setOpen] = useState<number | null>(0)
   const [openedWishes, setOpenedWishes] = useState<number[]>([])
+  const [wishSync, setWishSync] = useState<WishSyncStatus>(remoteWishStoreConfigured ? 'loading' : 'unavailable')
+  const pendingWishSaves = useRef(0)
+  const wishSaveFailed = useRef(false)
   const wishTotal = wishGroups.reduce((sum, group) => sum + group.wishes.length, 0)
+
+  useEffect(() => {
+    if (!remoteWishStoreConfigured) return
+    let cancelled = false
+    void import('../firebaseClient')
+      .then(({ loadUnlockedWishes }) => loadUnlockedWishes())
+      .then((savedWishes) => {
+        if (cancelled) return
+        if (savedWishes.length) {
+          setOpenedWishes((current) => [...new Set([...current, ...savedWishes])].sort((a, b) => a - b))
+        }
+        if (pendingWishSaves.current === 0) setWishSync('ready')
+      })
+      .catch((error: unknown) => {
+        console.error('Could not load saved wishes.', error)
+        if (!cancelled) setWishSync('error')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  function unlockWish(wishNumber: number) {
+    setOpenedWishes((current) => current.includes(wishNumber) ? current : [...current, wishNumber].sort((a, b) => a - b))
+    if (!remoteWishStoreConfigured) {
+      setWishSync('unavailable')
+      return
+    }
+    pendingWishSaves.current += 1
+    setWishSync('saving')
+    void import('../firebaseClient')
+      .then(({ saveWishUnlock }) => saveWishUnlock(wishNumber))
+      .catch((error: unknown) => {
+        console.error('Could not save this wish unlock.', error)
+        wishSaveFailed.current = true
+        setWishSync('error')
+      })
+      .finally(() => {
+        pendingWishSaves.current -= 1
+        if (pendingWishSaves.current > 0) setWishSync('saving')
+        else if (!wishSaveFailed.current) setWishSync('ready')
+      })
+  }
+
+  const syncMessage = wishSync === 'loading'
+    ? 'Loading saved wishes…'
+    : wishSync === 'saving'
+      ? 'Saving this wish…'
+      : wishSync === 'error'
+        ? 'Could not sync every wish. Unlocks from this visit may not appear on other devices.'
+        : wishSync === 'unavailable'
+          ? 'Saved wishes are unavailable right now.'
+          : 'Scratch a card to reveal it. Unlocked wishes stay saved across devices.'
+
   return <section className="wishes-book">
     <header className="book-cover book-cover--wishes">
-      <span className="book-cover__eyebrow">A birthday keepsake <span aria-hidden="true">·</span> 01</span>
-      <span className="book-cover__ornament" aria-hidden="true">✧　✦　✧</span>
+      <span className="book-cover__eyebrow">A birthday keepsake <span aria-hidden="true">✧</span> 01</span>
+      <span className="book-cover__ornament" aria-hidden="true">✦ ⋆ ✦</span>
       <h1>100 Little Wishes</h1>
       <p>One hundred small hopes for the year ahead</p>
       <span className="book-cover__seal">FOR MANUU</span>
     </header>
     <div className="book-progress">
       <div className="book-progress__label"><span>Your wishes</span><strong aria-live="polite">{openedWishes.length} <span>/ {wishTotal}</span></strong></div>
-      <progress value={openedWishes.length} max={wishTotal} aria-label={`${openedWishes.length} of ${wishTotal} wishes marked`} />
+      <progress value={openedWishes.length} max={wishTotal} aria-label={`${openedWishes.length} of ${wishTotal} wishes revealed`} />
+      <p className={`wish-sync wish-sync--${wishSync}`} role="status">{syncMessage}</p>
     </div>
     <div className="wishes-groups">{wishGroups.map((group, groupIndex) => <section className={`wish-group${open === groupIndex ? ' is-open' : ''}`} key={group.title}>
       <button className="wish-group__toggle" type="button" aria-expanded={open === groupIndex} onClick={() => setOpen(open === groupIndex ? null : groupIndex)}><span className="wish-group__icon" aria-hidden="true">{group.icon}</span><span><small>CHAPTER {String(groupIndex + 1).padStart(2, '0')} · WISHES {groupIndex * 20 + 1}–{groupIndex * 20 + 20}</small><strong>{group.title}</strong></span><span className="wish-group__plus" aria-hidden="true">{open === groupIndex ? '−' : '+'}</span></button>
-      {open === groupIndex && <ol className="wish-list" start={groupIndex * 20 + 1}>{group.wishes.map((wish, i) => { const wishNumber = groupIndex * 20 + i + 1; return <li key={wish}><span>{String(wishNumber).padStart(2, '0')}</span><button type="button" className={openedWishes.includes(wishNumber) ? 'is-read' : ''} aria-pressed={openedWishes.includes(wishNumber)} onClick={() => setOpenedWishes((old) => old.includes(wishNumber) ? old : [...old, wishNumber])}>{wish}</button><span className="wish-check" aria-hidden="true">{openedWishes.includes(wishNumber) ? '✓' : '＋'}</span></li> })}</ol>}
+      {open === groupIndex && <ol className="wish-list" start={groupIndex * 20 + 1}>{group.wishes.map((wish, i) => {
+        const wishNumber = groupIndex * 20 + i + 1
+        const isUnlocked = openedWishes.includes(wishNumber)
+        return <li key={wishNumber} className={`wish-list__item${isUnlocked ? ' is-unlocked' : ''}`}>
+          <span className="wish-list__number">{String(wishNumber).padStart(2, '0')}</span>
+          <WishScratchCard number={wishNumber} wish={wish} unlocked={isUnlocked} onUnlock={unlockWish} />
+          <span className="wish-check" aria-hidden="true">{isUnlocked ? '✓' : '＋'}</span>
+        </li>
+      })}</ol>}
     </section>)}</div>
     <p className="wishes-endnote">Made of little hopes, with birthday care. <span aria-hidden="true">✦</span></p>
   </section>

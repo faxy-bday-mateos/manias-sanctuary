@@ -2,18 +2,11 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Hero } from './sections/Hero'
 import { FriendshipNote } from './sections/FriendshipNote'
 import { WallpaperPreview } from './sections/WallpaperPreview'
+import { HomeKeepsake } from './sections/HomeKeepsake'
 import { ClosingWish } from './sections/ClosingWish'
 import { ButterflyGarden } from './sections/ButterflyGarden'
 import { HundredOrgans, HundredWishes } from './sections/Experiences'
-import { ActivityTracker } from './sections/ActivityTracker'
-import { remoteActivityConfigured } from './firebase'
-import {
-  getActivityConsent,
-  recordInteraction,
-  recordPageVisit,
-  setActivityConsent,
-  type ActivityConsent,
-} from './activityTracker'
+import { recordInteraction, recordPageVisit } from './activityTracker'
 // The birthday countdown remains available for a later launch.
 
 const AdminActivity = lazy(() =>
@@ -28,17 +21,16 @@ const pages = [
   { id: 'wishes', title: '100 Little Wishes', hint: 'A book of birthday hopes, one page at a time.', icon: '✧' },
   { id: 'organs', title: '100 Organs', hint: 'A gentle book celebrating every part of you.', icon: '❀' },
   { id: 'seasons', title: 'Four Seasons Supremacy', hint: 'Explore four seasonal skies with weather, wind, and light controls.', icon: '❄' },
-  { id: 'activity', title: 'Activity Tracker', hint: 'Review or export this browser’s opt-in activity log.', icon: '◷' },
 ] as const
 type PageId = (typeof pages)[number]['id']
 type AppPage = PageId | 'world' | 'home' | 'admin'
 
 function App() {
   const [page, setPage] = useState<AppPage>(() => readPage())
-  const [activityConsent, setActivityConsentState] = useState<ActivityConsent>(getActivityConsent)
   const [skyCleanView, setSkyCleanView] = useState(false)
   const observatoryFrame = useRef<HTMLIFrameElement>(null)
   const lastRecordedVisit = useRef('')
+  const isAdminPath = window.location.pathname.replace(/\/+$/, '') === '/admin'
 
   useEffect(() => {
     const onHash = () => {
@@ -50,15 +42,14 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const visitKey = `${page}:${activityConsent}`
-    if (activityConsent === 'accepted' && page !== 'admin' && lastRecordedVisit.current !== visitKey) {
-      lastRecordedVisit.current = visitKey
+    if (page !== 'admin' && lastRecordedVisit.current !== page) {
+      lastRecordedVisit.current = page
       recordPageVisit(page)
     }
-  }, [page, activityConsent])
+  }, [page])
 
   useEffect(() => {
-    if (activityConsent !== 'accepted' || page === 'admin') return
+    if (page === 'admin') return
 
     const onClick = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return
@@ -93,7 +84,7 @@ function App() {
       document.removeEventListener('click', onClick)
       document.removeEventListener('change', onChange)
     }
-  }, [page, activityConsent])
+  }, [page])
 
   useEffect(() => {
     const onMessage = (event: MessageEvent<unknown>) => {
@@ -108,7 +99,6 @@ function App() {
         setSkyCleanView(data.enabled)
       }
       if (
-        activityConsent === 'accepted' &&
         data.type === 'birthday-activity-event' &&
         'event' in data &&
         isIframeActivityEvent(data.event)
@@ -120,12 +110,14 @@ function App() {
 
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
-  }, [activityConsent])
+  }, [])
 
-  function goHome() { window.location.hash = '/' }
-  function updateActivityConsent(consent: Exclude<ActivityConsent, null>) {
-    setActivityConsent(consent)
-    setActivityConsentState(consent)
+  function goHome() {
+    if (isAdminPath) {
+      window.location.assign('/')
+      return
+    }
+    window.location.hash = '/'
   }
   const activeTitle = page === 'admin' ? 'Admin Activity' : pages.find((item) => item.id === page)?.title
 
@@ -134,12 +126,13 @@ function App() {
       <a className="skip-link" href="#main-content">Skip to content</a>
       <main id="main-content" tabIndex={-1} className={`birthday-app${page === 'sky' && skyCleanView ? ' birthday-app--sky-clean' : ''}`}>
       {page !== 'sky' && <header className={`site-nav${page === 'seasons' ? ' site-nav--fullscreen' : ''}`}>
-        {page !== 'seasons' && <a className="site-brand" href="#/" aria-label="Manuu's birthday home">✦ <span>for Manuu</span></a>}
+        {page !== 'seasons' && <a className="site-brand" href={isAdminPath ? '/' : '#/'} aria-label="Manuu's birthday home">✦ <span>for Manuu</span></a>}
         {page !== 'home' && <button className="back-home" type="button" onClick={goHome}>← Birthday home</button>}
       </header>}
       {page === 'home' ? (
         <div className="birthday-home birthday-home--landing">
           <Hero />
+          <HomeKeepsake />
         </div>
       ) : page === 'world' ? (
         <div className="birthday-world">
@@ -148,10 +141,10 @@ function App() {
             <div className="section__heading">
               <p className="eyebrow">A small birthday world</p>
               <h1 id="journey-title">Where would you like to wander?</h1>
-              <p className="section__intro">Eight little places, each with something to discover. Take them at your own pace.</p>
+              <p className="section__intro">Six little places, each with something to discover. Take them at your own pace.</p>
             </div>
             <nav className="experience-grid" id="experiences" aria-label="Birthday experiences">
-              {pages.map((item, index) => <a className="experience-card" href={`#/${item.id}`} key={item.id}>
+              {pages.filter((item) => item.id !== 'wallpaper').map((item, index) => <a className="experience-card" href={`#/${item.id}`} key={item.id}>
                 <span className="experience-card__number">0{index + 1}</span><span className="experience-card__icon" aria-hidden="true">{item.icon}</span>
                 <h3>{item.title}</h3><p>{item.hint}</p><span className="experience-card__link">Open this little world <span aria-hidden="true">↗</span></span>
               </a>)}
@@ -162,7 +155,7 @@ function App() {
         </div>
       ) : <>
         <div className={`destination destination--${page}`}>
-        {page !== 'sky' && page !== 'seasons' && page !== 'garden' && page !== 'note' && page !== 'wishes' && page !== 'organs' && page !== 'activity' && page !== 'admin' && <div className="destination__heading"><p className="eyebrow">A birthday place for Manuu</p><h1>{activeTitle}</h1></div>}
+        {page !== 'sky' && page !== 'seasons' && page !== 'garden' && page !== 'note' && page !== 'wishes' && page !== 'organs' && page !== 'admin' && <div className="destination__heading"><p className="eyebrow">A birthday place for Manuu</p><h1>{activeTitle}</h1></div>}
           {page === 'sky' && <iframe
             ref={observatoryFrame}
             className="observatory-iframe"
@@ -181,7 +174,6 @@ function App() {
           {page === 'note' && <FriendshipNote />}
           {page === 'wishes' && <HundredWishes />}
           {page === 'organs' && <HundredOrgans />}
-          {page === 'activity' && <ActivityTracker />}
           {page === 'admin' && (
             <Suspense fallback={<p role="status">Loading admin dashboard…</p>}>
               <AdminActivity />
@@ -190,31 +182,13 @@ function App() {
         </div>
         {page !== 'sky' && page !== 'seasons' && <footer className="destination-footer"><button type="button" onClick={goHome}>← Back to birthday home</button></footer>}
       </>}
-      {activityConsent === null && page !== 'admin' && (
-        <aside className="activity-consent" aria-labelledby="activity-consent-title">
-          <div>
-            <h2 id="activity-consent-title">Optional activity log</h2>
-            <p>
-              If you opt in, this browser saves visit times and clicks or
-              changes to controls. {remoteActivityConfigured
-                ? 'Events are also sent to the protected site-admin activity log.'
-                : 'No events are sent to the site owner until remote tracking is configured.'}
-              {' '}Typed text, answers, scrolling, and keystrokes are not recorded.
-              You can stop tracking at any time from Activity Tracker.
-            </p>
-          </div>
-          <div className="activity-consent__actions">
-            <button type="button" data-activity-ignore onClick={() => updateActivityConsent('accepted')}>Opt in</button>
-            <button type="button" data-activity-ignore onClick={() => updateActivityConsent('declined')}>No thanks</button>
-          </div>
-        </aside>
-      )}
       </main>
     </>
   )
 }
 
 function readPage(): AppPage {
+  if (window.location.pathname.replace(/\/+$/, '') === '/admin') return 'admin'
   const id = window.location.hash.replace(/^#\/?/, '')
   if (id === 'world') return 'world'
   if (id === 'admin') return 'admin'

@@ -1,6 +1,6 @@
 # Happy Birthday, Manuu
 
-A calm, responsive birthday site built with Vite, React, and TypeScript. It includes a birthday home, an experience hub, an interactive sky observatory, seasonal skies, a butterfly garden, a friendship note, 100 Little Wishes, 100 Organs, wallpaper creation, and an optional activity tracker. Visuals are drawn locally with CSS, SVG, and Canvas. Remote activity reporting is optional and requires a separately configured Firebase project.
+A calm, responsive birthday site built with Vite, React, and TypeScript. It includes a birthday home, an experience hub, an interactive sky observatory, seasonal skies, a butterfly garden, a friendship note, 100 scratch-to-reveal Little Wishes, 100 Organs, wallpaper creation, and an activity tracker. Visuals are drawn locally with CSS, SVG, and Canvas. Remote activity reporting and saved wish unlocks require a separately configured Firebase project.
 
 ## Requirements
 
@@ -43,21 +43,25 @@ For Netlify, either:
 
 The project is not deployed by these instructions.
 
-## Optional remote activity dashboard
+## Remote activity dashboard
 
-The activity tracker asks visitors for opt-in consent before logging page visits and control clicks/changes. It does not collect identity, referrers, typed text, puzzle answers, scrolling, or keystrokes. Without Firebase configuration, the opt-in log remains local to that browser. With Firebase configured, consented events are sent to a protected Firestore collection and can be viewed at `/#/admin`.
+The activity tracker logs page visits and control clicks/changes automatically. It does not collect identity, referrers, typed text, puzzle answers, scrolling, or keystrokes. Without Firebase configuration, the log remains local to that browser. With Firebase configured, events are sent to a protected Firestore collection and can be viewed at `/admin` (or `/#/admin`).
 
-The tracker is configured for the Firebase project `mania-4f364` and stores activity in the `activityEvents` Cloud Firestore collection. Keep visitor activity in Firestore; do not use or change the separate 100-orgs Realtime Database or its rules.
+The tracker is configured for the Firebase project `mania-4f364` and stores activity in the `activityEvents` Cloud Firestore collection. Uploaded Wallpaper Studio photos are stored in `wallpaperUploads/{visitorUid}/images`. Keep this data in Firestore; do not use or change the separate 100-orgs Realtime Database or its rules.
 
-The admin UI at `/#/admin` provides a live timeline (latest 100 records, with older-page loading), page/event/time/search filters, summary counts, CSV/JSON export, and admin-only bulk deletion.
+## Saved wishes
 
-Firebase project `mania-4f364` has Cloud Firestore in `asia-south1`, Anonymous and Email/Password Authentication enabled, and the registered `mania Web App` configured in ignored `.env.local`. Firestore App Check uses the registered reCAPTCHA Enterprise provider and is enforced. The latest Firestore Rules Console revision matches `firestore.rules`; the Rules Playground denied an anonymous non-admin read and allowed a request with the configured admin UID. Activity data stays in Cloud Firestore; do not use or change the separate 100-orgs Realtime Database or its rules.
+Each of the 100 Little Wishes is hidden under a scratch card. Unlocking one writes a small document to `wishUnlocks/wish-01` through `wishUnlocks/wish-100` in Firestore, with only an `unlockedAt` server timestamp. The collection is shared by every visitor, so the same unlocks appear on any device that opens the site; it is not a per-person account. Without Firebase configuration or Anonymous Auth, cards still work locally for the current visit but do not persist. The local `firestore.rules` includes the `wishUnlocks` rule; deploy it with `firebase deploy --only firestore:rules` before relying on cross-device progress.
 
-**The site owner reports that the site is live at https://manias-sanctuary.netlify.app.** That URL currently returns HTTP 401 and redirects to Netlify's “This site is private” page, which requires an invited Netlify account; the deployed content cannot be inspected without access. Local remote visitor writes are verified: in Chrome, an opted-in visitor generated a `page_visit` and a control `interaction` record in Firestore with server timestamps while Firestore App Check enforcement was on. The Rules Playground denied a non-admin read and allowed the configured admin UID. An in-app browser attempt separately failed at reCAPTCHA token acquisition (`appCheck/recaptcha-error`) and Firebase Auth (`auth/network-request-failed`). Authorized admin dashboard sign-in/read and remote tracking on the deployed host remain unverified.
+The admin UI at `/admin` provides a live timeline (latest 100 records, with older-page loading), page/event/time/search filters, summary counts, and CSV/JSON export labeled with the download date and weekday. After sign-in, **Preview sample data** shows generated in-memory records for exploring the controls without writing to Firestore or changing live activity; **Back to live data** returns to the real timeline.
+
+Firebase project `mania-4f364` has Cloud Firestore in `asia-south1`, Anonymous and Email/Password Authentication enabled, and the registered `mania Web App` configured in ignored `.env.local`. Firestore App Check uses the registered reCAPTCHA Enterprise provider and is enforced. The previously verified Firestore Rules Console revision covered activity and wallpaper data; the newer local `firestore.rules` also adds `wishUnlocks` and must be deployed before cross-device wish progress is reliable. The Rules Playground denied an anonymous non-admin read and allowed a request with the configured admin UID. Activity data stays in Cloud Firestore; do not use or change the separate 100-orgs Realtime Database or its rules.
+
+**The site is live at https://manias-sanctuary.netlify.app and is publicly accessible.** The latest check showed the earlier deployed build; the current local changes have not yet been confirmed on the live site. Local remote visitor writes are verified: in Chrome, a visitor generated a `page_visit` and a control `interaction` record in Firestore with server timestamps while Firestore App Check enforcement was on. The Rules Playground denied a non-admin read and allowed the configured admin UID. An in-app browser attempt separately failed at reCAPTCHA token acquisition (`appCheck/recaptcha-error`) and Firebase Auth (`auth/network-request-failed`). Authorized admin dashboard sign-in/read and remote tracking on the deployed host remain unverified.
 
 On a clean checkout, copy `.env.example` to `.env.local` and fill in the Web app config, exact admin UID, and reCAPTCHA Enterprise site key. `.env.local` is ignored by Git, and `.env.example` contains placeholders only. The Firebase Web API key and App Check site key are client identifiers, not admin secrets. Never put service-account keys or admin passwords in `VITE_` variables or source control. Configure hosting build variables only when preparing a requested site deployment; the Firebase CLI target is `mania-4f364`.
 
-Visitors can stop tracking and clear their local copy at Activity Tracker. Already-submitted remote events remain until the admin deletes them there. Events are not tied to a real-world identity, and browser-side event reporting is not proof of who used the site.
+Activity is recorded automatically; there is no visitor opt-in control. Events are not tied to a real-world identity, and browser-side event reporting is not proof of who used the site. The admin can delete all remote activity events from the dashboard.
 
 ## Editing
 
@@ -67,7 +71,9 @@ Visitors can stop tracking and clear their local copy at Activity Tracker. Alrea
 - Global styles and responsive layout: `src/styles.css`
 - Page sections: `src/sections/`
 - Local wallpaper drawing and PNG export: `src/wallpaperCanvas.ts`
+- Scratch-card canvas and unlock interaction: `src/sections/WishScratchCard.tsx`
+- Firebase activity, wallpaper, and saved-wish persistence: `src/firebaseClient.ts`
 
-The 100 Organs page uses local React content. The separate Observatory has its own legacy scripts; visitor activity is consent-gated and forwarded to the same-origin app only for opted-in sessions.
+The 100 Organs page uses local React content. The 100 Little Wishes page keeps local UI state and loads/saves unlock progress through Firebase when configured. The separate Observatory has its own legacy scripts; activity is forwarded to the same-origin app.
 
-The wallpaper downloads as `manuu-birthday-wallpaper.png` at 1080 × 1920 pixels.
+The wallpaper downloads as `manuu-birthday-wallpaper.png` at 1080 × 1920 pixels. Wallpaper Studio also accepts JPEG/PNG/WebP uploads, saves a compressed copy to Firestore, and lists that browser's recent uploads in the photo history below the preview.

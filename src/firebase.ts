@@ -10,6 +10,8 @@ export const adminUid = import.meta.env.VITE_FIREBASE_ADMIN_UID?.trim() || ''
 export const appCheckSiteKey = import.meta.env.VITE_FIREBASE_APPCHECK_SITE_KEY?.trim() || ''
 export const firebaseAppConfigured = requiredConfig.every(Boolean)
 export const remoteActivityConfigured = requiredConfig.every(Boolean) && Boolean(adminUid) && Boolean(appCheckSiteKey)
+export const remoteImageStoreConfigured = requiredConfig.every(Boolean) && Boolean(appCheckSiteKey)
+export const remoteWishStoreConfigured = requiredConfig.every(Boolean) && Boolean(appCheckSiteKey)
 export const missingFirebaseSettings = [
   ...Object.entries(firebaseConfig)
     .filter(([, value]) => !value)

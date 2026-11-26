@@ -49,6 +49,78 @@ const PAGE_LABELS: Record<string, string> = {
   activity: 'Activity Tracker',
 }
 
+const SAMPLE_ACTIVITY: {
+  minutesAgo: number
+  page: string
+  type: RemoteActivityEvent['type']
+  action?: string
+}[] = [
+  { minutesAgo: 20160, page: 'home', type: 'page_visit' },
+  { minutesAgo: 20158, page: 'world', type: 'page_visit' },
+  { minutesAgo: 20155, page: 'garden', type: 'page_visit' },
+  { minutesAgo: 20152, page: 'garden', type: 'interaction', action: 'catch-butterfly' },
+  { minutesAgo: 20148, page: 'note', type: 'page_visit' },
+  { minutesAgo: 17280, page: 'home', type: 'page_visit' },
+  { minutesAgo: 17277, page: 'wallpaper', type: 'page_visit' },
+  { minutesAgo: 17274, page: 'wallpaper', type: 'interaction', action: 'choose-scene-ocean' },
+  { minutesAgo: 17270, page: 'wallpaper', type: 'interaction', action: 'download-birthday-wallpaper' },
+  { minutesAgo: 14400, page: 'home', type: 'page_visit' },
+  { minutesAgo: 14397, page: 'wishes', type: 'page_visit' },
+  { minutesAgo: 14392, page: 'wishes', type: 'interaction', action: 'turn-wish-page' },
+  { minutesAgo: 14388, page: 'wishes', type: 'interaction', action: 'bookmark-wish' },
+  { minutesAgo: 11520, page: 'home', type: 'page_visit' },
+  { minutesAgo: 11515, page: 'organs', type: 'page_visit' },
+  { minutesAgo: 11510, page: 'organs', type: 'interaction', action: 'next-organ-page' },
+  { minutesAgo: 10080, page: 'home', type: 'page_visit' },
+  { minutesAgo: 10076, page: 'seasons', type: 'page_visit' },
+  { minutesAgo: 10072, page: 'seasons', type: 'interaction', action: 'change-season' },
+  { minutesAgo: 10068, page: 'seasons', type: 'interaction', action: 'change-weather' },
+  { minutesAgo: 7200, page: 'home', type: 'page_visit' },
+  { minutesAgo: 7196, page: 'sky', type: 'page_visit' },
+  { minutesAgo: 7194, page: 'sky-observatory', type: 'page_visit' },
+  { minutesAgo: 7190, page: 'sky-observatory', type: 'interaction', action: 'toggle-constellation' },
+  { minutesAgo: 7186, page: 'sky-observatory', type: 'interaction', action: 'clean-view' },
+  { minutesAgo: 5760, page: 'home', type: 'page_visit' },
+  { minutesAgo: 5755, page: 'garden', type: 'page_visit' },
+  { minutesAgo: 5750, page: 'garden', type: 'interaction', action: 'release-firefly' },
+  { minutesAgo: 4320, page: 'home', type: 'page_visit' },
+  { minutesAgo: 4316, page: 'world', type: 'page_visit' },
+  { minutesAgo: 4312, page: 'world', type: 'interaction', action: 'open-note' },
+  { minutesAgo: 4308, page: 'note', type: 'page_visit' },
+  { minutesAgo: 4303, page: 'note', type: 'interaction', action: 'read-letter' },
+  { minutesAgo: 2880, page: 'home', type: 'page_visit' },
+  { minutesAgo: 2876, page: 'wallpaper', type: 'page_visit' },
+  { minutesAgo: 2872, page: 'wallpaper', type: 'interaction', action: 'choose-scene-room' },
+  { minutesAgo: 2868, page: 'wallpaper', type: 'interaction', action: 'upload-wallpaper-photo' },
+  { minutesAgo: 1440, page: 'home', type: 'page_visit' },
+  { minutesAgo: 1436, page: 'garden', type: 'page_visit' },
+  { minutesAgo: 1431, page: 'garden', type: 'interaction', action: 'find-butterfly' },
+  { minutesAgo: 1426, page: 'wishes', type: 'page_visit' },
+  { minutesAgo: 1421, page: 'wishes', type: 'interaction', action: 'turn-wish-page' },
+  { minutesAgo: 360, page: 'home', type: 'page_visit' },
+  { minutesAgo: 355, page: 'world', type: 'page_visit' },
+  { minutesAgo: 350, page: 'sky', type: 'page_visit' },
+  { minutesAgo: 345, page: 'sky-observatory', type: 'interaction', action: 'open-star-map' },
+  { minutesAgo: 180, page: 'home', type: 'page_visit' },
+  { minutesAgo: 175, page: 'note', type: 'page_visit' },
+  { minutesAgo: 170, page: 'note', type: 'interaction', action: 'play-note-music' },
+  { minutesAgo: 45, page: 'home', type: 'page_visit' },
+  { minutesAgo: 41, page: 'wallpaper', type: 'page_visit' },
+  { minutesAgo: 37, page: 'wallpaper', type: 'interaction', action: 'choose-scene-night' },
+  { minutesAgo: 20, page: 'wallpaper', type: 'interaction', action: 'download-birthday-wallpaper' },
+  { minutesAgo: 8, page: 'home', type: 'page_visit' },
+]
+
+function createSampleEvents(now = Date.now()): RemoteActivityEvent[] {
+  return SAMPLE_ACTIVITY.map((item, index) => ({
+    id: `sample-${String(index + 1).padStart(2, '0')}`,
+    timestamp: now - item.minutesAgo * 60_000,
+    page: item.page,
+    type: item.type,
+    ...(item.action ? { action: item.action } : {}),
+  })).sort((first, second) => second.timestamp - first.timestamp)
+}
+
 function parseEvent(id: string, data: DocumentData): RemoteActivityEvent | null {
   if (
     !(data.timestamp instanceof Timestamp) ||
@@ -87,9 +159,26 @@ function downloadFile(fileName: string, mimeType: string, content: string) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-function exportCsv(events: RemoteActivityEvent[]) {
+function getExportLabel(date = new Date()) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const dayOfMonth = String(date.getDate()).padStart(2, '0')
+  const dateLabel = `${year}-${month}-${dayOfMonth}`
+  const dayLabel = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date)
+  const generatedAt = date.toISOString()
+  return { dateLabel, dayLabel, generatedAt }
+}
+
+function exportCsv(events: RemoteActivityEvent[], isSample: boolean) {
   const quote = (value: string) => `"${value.replace(/"/g, '""')}"`
+  const report = getExportLabel()
   const rows = [
+    ['Report date', report.dateLabel],
+    ['Report day', report.dayLabel],
+    ['Generated at', report.generatedAt],
+    ['Data source', isSample ? 'Sample preview (in-memory)' : 'Live Firestore'],
+    ['Records', String(events.length)],
+    [],
     ['timestamp', 'page', 'event_type', 'action'],
     ...events.map((event) => [
       new Date(event.timestamp).toISOString(),
@@ -99,13 +188,14 @@ function exportCsv(events: RemoteActivityEvent[]) {
     ]),
   ]
   downloadFile(
-    'visitor-activity.csv',
+    `${isSample ? 'sample-' : ''}visitor-activity-${report.dayLabel.toLowerCase()}-${report.dateLabel}.csv`,
     'text/csv;charset=utf-8',
     rows.map((row) => row.map(quote).join(',')).join('\r\n'),
   )
 }
 
-function exportJson(events: RemoteActivityEvent[]) {
+function exportJson(events: RemoteActivityEvent[], isSample: boolean) {
+  const report = getExportLabel()
   const records = events.map(({ id, timestamp, page, type, action }) => ({
     id,
     timestamp: new Date(timestamp).toISOString(),
@@ -113,7 +203,19 @@ function exportJson(events: RemoteActivityEvent[]) {
     type,
     ...(action ? { action } : {}),
   }))
-  downloadFile('visitor-activity.json', 'application/json', JSON.stringify(records, null, 2))
+  const payload = {
+    reportDate: report.dateLabel,
+    reportDay: report.dayLabel,
+    generatedAt: report.generatedAt,
+    dataSource: isSample ? 'sample-preview' : 'live',
+    recordCount: records.length,
+    events: records,
+  }
+  downloadFile(
+    `${isSample ? 'sample-' : ''}visitor-activity-${report.dayLabel.toLowerCase()}-${report.dateLabel}.json`,
+    'application/json',
+    JSON.stringify(payload, null, 2),
+  )
 }
 
 export function AdminActivity() {
@@ -135,6 +237,8 @@ export function AdminActivity() {
   const [pageFilter, setPageFilter] = useState('all')
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
   const [search, setSearch] = useState('')
+  const [showSample, setShowSample] = useState(false)
+  const [sampleEvents] = useState(createSampleEvents)
   const liveDocs = useRef<QueryDocumentSnapshot<DocumentData>[]>([])
   const olderCursor = useRef<QueryDocumentSnapshot<DocumentData> | null>(null)
 
@@ -223,12 +327,13 @@ export function AdminActivity() {
     () => mergeEvents(olderEvents, liveEvents),
     [olderEvents, liveEvents],
   )
+  const displayedEvents = showSample ? sampleEvents : events
 
   const pageOptions = useMemo(() => {
-    const observedPages = events.map((event) => event.page)
+    const observedPages = displayedEvents.map((event) => event.page)
     return [...new Set([...Object.keys(PAGE_LABELS), ...observedPages])]
       .sort((first, second) => pageName(first).localeCompare(pageName(second)))
-  }, [events])
+  }, [displayedEvents])
 
   const filteredEvents = useMemo(() => {
     const now = Date.now()
@@ -238,7 +343,7 @@ export function AdminActivity() {
           : 0
     const normalizedSearch = search.trim().toLowerCase()
 
-    return events.filter((event) =>
+    return displayedEvents.filter((event) =>
       (eventFilter === 'all' || event.type === eventFilter) &&
       (pageFilter === 'all' || event.page === pageFilter) &&
       event.timestamp >= cutoff &&
@@ -246,12 +351,12 @@ export function AdminActivity() {
         pageName(event.page).toLowerCase().includes(normalizedSearch) ||
         (event.action || '').toLowerCase().includes(normalizedSearch)),
     )
-  }, [events, eventFilter, pageFilter, search, timeFilter])
+  }, [displayedEvents, eventFilter, pageFilter, search, timeFilter])
 
-  const visitCount = events.filter((event) => event.type === 'page_visit').length
-  const interactionCount = events.length - visitCount
+  const visitCount = displayedEvents.filter((event) => event.type === 'page_visit').length
+  const interactionCount = displayedEvents.length - visitCount
   const visitedPageCount = new Set(
-    events.filter((event) => event.type === 'page_visit').map((event) => event.page),
+    displayedEvents.filter((event) => event.type === 'page_visit').map((event) => event.page),
   ).size
 
   async function handleSignIn(event: FormEvent<HTMLFormElement>) {
@@ -341,6 +446,7 @@ export function AdminActivity() {
     try {
       await signOut(firebaseAuth)
       setUser(null)
+      setShowSample(false)
       setLiveEvents([])
       setOlderEvents([])
       liveDocs.current = []
@@ -404,28 +510,55 @@ export function AdminActivity() {
       ) : (
         <>
           <div className="admin-activity__toolbar">
-            <p role="status">
-              <span className="admin-activity__live-dot" aria-hidden="true" />
-              Live updates
-              {lastUpdated ? ` · updated ${new Date(lastUpdated).toLocaleTimeString()}` : ''}
-            </p>
-            <button type="button" onClick={handleSignOut}>Sign out</button>
+            {showSample ? (
+              <p role="status">
+                <span className="admin-activity__sample-dot" aria-hidden="true" />
+                Sample preview · in-memory only
+              </p>
+            ) : (
+              <p role="status">
+                <span className="admin-activity__live-dot" aria-hidden="true" />
+                Live updates
+                {lastUpdated ? ` · updated ${new Date(lastUpdated).toLocaleTimeString()}` : ''}
+              </p>
+            )}
             <button
-              className="admin-activity__danger"
               type="button"
-              onClick={handleDeleteAll}
-              disabled={deleting}
+              aria-pressed={showSample}
+              onClick={() => setShowSample((current) => !current)}
             >
-              {deleting ? 'Deleting…' : 'Delete all remote activity'}
+              {showSample ? 'Back to live data' : 'Preview sample data'}
             </button>
+            <button type="button" onClick={handleSignOut}>Sign out</button>
+            {!showSample && (
+              <button
+                className="admin-activity__danger"
+                type="button"
+                onClick={handleDeleteAll}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting…' : 'Delete all remote activity'}
+              </button>
+            )}
           </div>
 
-          {loading ? (
+          {showSample && (
+            <div className="admin-activity__notice" role="status">
+              <strong>Sample activity preview</strong>
+              <p>
+                These {sampleEvents.length} generated records exist only in this page.
+                Nothing is written to Firestore or localStorage, no network requests are sent for them,
+                and real activity is left exactly as it is.
+              </p>
+            </div>
+          )}
+
+          {!showSample && loading ? (
             <p className="admin-activity__status" role="status">Loading the latest activity…</p>
           ) : (
             <>
               <dl className="admin-activity__metrics" aria-label="Loaded activity summary">
-                <div><dt>Loaded events</dt><dd>{events.length.toLocaleString()}</dd></div>
+                <div><dt>Loaded events</dt><dd>{displayedEvents.length.toLocaleString()}</dd></div>
                 <div><dt>Page visits</dt><dd>{visitCount.toLocaleString()}</dd></div>
                 <div><dt>Interactions</dt><dd>{interactionCount.toLocaleString()}</dd></div>
                 <div><dt>Pages visited</dt><dd>{visitedPageCount.toLocaleString()}</dd></div>
@@ -469,10 +602,10 @@ export function AdminActivity() {
 
               <div className="admin-activity__export">
                 <p>{filteredEvents.length.toLocaleString()} matching event{filteredEvents.length === 1 ? '' : 's'} loaded</p>
-                <button type="button" onClick={() => exportCsv(filteredEvents)} disabled={!filteredEvents.length}>
+                <button type="button" onClick={() => exportCsv(filteredEvents, showSample)} disabled={!filteredEvents.length}>
                   Export CSV
                 </button>
-                <button type="button" onClick={() => exportJson(filteredEvents)} disabled={!filteredEvents.length}>
+                <button type="button" onClick={() => exportJson(filteredEvents, showSample)} disabled={!filteredEvents.length}>
                   Export JSON
                 </button>
               </div>
@@ -500,13 +633,13 @@ export function AdminActivity() {
                 </ol>
               ) : (
                 <p className="admin-activity__empty">
-                  {events.length
+                  {displayedEvents.length
                     ? 'No events match these filters. Try broadening your search.'
-                    : 'No opted-in visits have been recorded yet.'}
+                    : 'No activity has been recorded yet.'}
                 </p>
               )}
 
-              {hasMore && (
+              {!showSample && hasMore && (
                 <button
                   className="admin-activity__load-more"
                   type="button"

@@ -21,26 +21,24 @@
   
   <style>
     :root {
-      --ink: #17130f;
-      --ink-soft: #1e1811;
-      --ink-line: #33291e;
-      --parchment: #ffebd2;
-      --parchment-dim: #c7b8a1;
-      --ash: #6b5f52;
-      --gold: #ffe680;
-      --ember: #e85d3a;
+      --ink: #171d3a;
+      --ink-soft: #25344e;
+      --ink-line: #3b4663;
+      --parchment: #f2e4c9;
+      --parchment-dim: #d8ccb6;
+      --ash: #8c816e;
+      --gold: #d29b59;
+      --ember: #c97f69;
       --font-display: "Fraunces", Georgia, "Times New Roman", serif;
       --font-body: "Lora", Georgia, "Times New Roman", serif;
       --pad-inline: clamp(1.25rem, 6vw, 2.25rem);
-      --glass: rgba(255, 220, 160, .08);
-      --glassBorder: rgba(255, 210, 150, .35);
+      --glass: rgba(242, 228, 201, .08);
+      --glassBorder: rgba(242, 228, 201, .26);
     }
     * { box-sizing: border-box; }
     body {
-      cursor: url('cursor images/imresizer-meme-pop-cat-pack.jpg'), auto;
-
       margin: 0;
-      background-color: #181214;
+      background-color: #171d3a;
       color: var(--parchment);
       font-family: var(--font-body);
       font-size: 1rem;
@@ -83,8 +81,6 @@
       opacity: 1 !important;
     }
     body {
-      cursor: url('cursor images/imresizer-meme-pop-cat-pack.jpg'), auto;
-
       background: transparent !important;
     }
     #observatory {
@@ -174,22 +170,6 @@
   <script src="quiz.js"></script>
   <script>
     (function() {
-      var c = document.createElement('div');
-      c.id = 'heartContainer';
-      c.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9998;';
-      document.body.appendChild(c);
-      document.addEventListener('mousemove', function(e) {
-        if (Math.random() > 0.12) return;
-        var h = document.createElement('span');
-        h.textContent = '\u2661';
-        h.setAttribute('aria-hidden', 'true');
-        h.style.cssText = 'position:absolute;left:' + e.clientX + 'px;top:' + e.clientY + 'px;font-size:' + (8 + Math.random() * 14) + 'px;color:rgba(255,100,150,' + (0.25 + Math.random() * 0.4) + ');pointer-events:none;animation:hFloat ' + (1.5 + Math.random() * 2) + 's ease-out forwards;';
-        c.appendChild(h);
-        setTimeout(function() { h.remove(); }, 3500);
-      });
-      var s = document.createElement('style');
-      s.textContent = '@keyframes hFloat{0%{opacity:1;transform:translateY(0) scale(1) rotate(0deg)}100%{opacity:0;transform:translateY(-90px) scale(0.2) rotate(20deg)}}';
-      document.head.appendChild(s);
       var b = document.createElement('div');
       b.id = 'skyActionCluster';
       b.style.cssText = 'text-align:center;padding:2rem 1rem;position:relative;z-index:15;';

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import {
+  createKeepsakePng,
   drawConstellationWallpaper,
   drawMoodMap,
   drawPhotoKeepsake,
   type ConstellationPoint,
   type PhotoStyle,
 } from '../homeKeepsakeCanvas'
-import { createWallpaperPng } from '../wallpaperCanvas'
 
 type KeepsakeMode = 'photo' | 'constellation' | 'mood'
 
@@ -157,7 +157,7 @@ export function HomeKeepsake() {
     }
     report('Preparing your PNG…')
     try {
-      const blob = await createWallpaperPng(canvas)
+      const blob = await createKeepsakePng(canvas)
       const objectUrl = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = objectUrl
@@ -347,7 +347,7 @@ export function HomeKeepsake() {
             {mode === 'constellation' && <>
               <canvas
                 ref={constellationCanvasRef}
-                className="home-keepsake__canvas home-keepsake__canvas--wallpaper"
+                className="home-keepsake__canvas home-keepsake__canvas--portrait"
                 width={1080}
                 height={1920}
                 role="button"
@@ -367,7 +367,7 @@ export function HomeKeepsake() {
             {mode === 'mood' && <>
               <canvas
                 ref={moodCanvasRef}
-                className="home-keepsake__canvas home-keepsake__canvas--wallpaper"
+                className="home-keepsake__canvas home-keepsake__canvas--portrait"
                 width={1080}
                 height={1920}
                 role="img"

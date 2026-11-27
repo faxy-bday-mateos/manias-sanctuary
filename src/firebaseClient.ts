@@ -12,12 +12,8 @@ import {
   doc,
   getDocs,
   getFirestore,
-  limit,
-  orderBy,
-  query,
   serverTimestamp,
   setDoc,
-  Timestamp,
 } from 'firebase/firestore'
 import { appCheckSiteKey, firebaseAppConfigured, firebaseConfig } from './firebase'
 
@@ -92,47 +88,5 @@ export async function saveWishUnlock(wishNumber: number) {
   await ensureRemoteUser()
   await setDoc(doc(firestore, 'wishUnlocks', `wish-${String(wishNumber).padStart(2, '0')}`), {
     unlockedAt: serverTimestamp(),
-  })
-}
-
-export type SavedWallpaperUpload = {
-  id: string
-  name: string
-  dataUrl: string
-  createdAt: number
-}
-
-export async function saveWallpaperUpload(input: { name: string; dataUrl: string }) {
-  if (!firestore) throw new Error('Firebase is not configured.')
-  const user = await ensureRemoteUser()
-  const saved = await addDoc(collection(firestore, 'wallpaperUploads', user.uid, 'images'), {
-    createdAt: serverTimestamp(),
-    name: input.name.slice(0, 120),
-    dataUrl: input.dataUrl,
-  })
-  return saved.id
-}
-
-export async function loadWallpaperUploads(): Promise<SavedWallpaperUpload[]> {
-  if (!firestore) return []
-  const user = await ensureRemoteUser()
-  const snapshot = await getDocs(query(
-    collection(firestore, 'wallpaperUploads', user.uid, 'images'),
-    orderBy('createdAt', 'desc'),
-    limit(12),
-  ))
-  return snapshot.docs.flatMap((document) => {
-    const data = document.data()
-    if (
-      !(data.createdAt instanceof Timestamp) ||
-      typeof data.name !== 'string' ||
-      typeof data.dataUrl !== 'string'
-    ) return []
-    return [{
-      id: document.id,
-      name: data.name,
-      dataUrl: data.dataUrl,
-      createdAt: data.createdAt.toMillis(),
-    }]
   })
 }

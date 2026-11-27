@@ -83,26 +83,6 @@ export const birthdayContent = {
       'Our friendship means a lot to me. I value you, and I’m grateful to have you in my life. I hope you feel celebrated today and in the year ahead.',
     closing: 'With care, and happy birthday.',
   },
-  wallpaper: {
-    kicker: 'Something to keep',
-    title: 'A little piece of this day.',
-    description:
-      'Choose a scene and save a quiet birthday wallpaper for your phone.',
-    artLine: 'a year of small wonders',
-    alt: 'Birthday wallpaper illustration with a night sky, ocean waves, or a cozy room.',
-    selectorLabel: 'Choose a wallpaper scene',
-    downloadLabel: 'Download birthday wallpaper',
-    downloadingLabel: 'Preparing wallpaper…',
-    downloadReady: 'Your wallpaper download has started.',
-    downloadError: 'The wallpaper could not be created. Please try again.',
-    fileName: 'manuu-birthday-wallpaper.png',
-    sceneOptions: {
-      night: 'Night Sky',
-      ocean: 'Ocean',
-      room: 'Cozy Room',
-    },
-    pixelSize: '1080 × 1920 PNG',
-  },
   closing: {
     title: 'Here’s to you, Manuu.',
     message:

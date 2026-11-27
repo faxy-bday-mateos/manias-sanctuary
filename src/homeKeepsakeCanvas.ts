@@ -337,3 +337,15 @@ export function drawMoodMap(canvas: HTMLCanvasElement, selectedMoods: string[]) 
   context.letterSpacing = '2px'
   context.fillText('A SKY THAT FEELS LIKE YOU', 180, 615)
 }
+
+export function createKeepsakePng(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob)
+      } else {
+        reject(new Error('The browser could not create the keepsake PNG.'))
+      }
+    }, 'image/png')
+  })
+}

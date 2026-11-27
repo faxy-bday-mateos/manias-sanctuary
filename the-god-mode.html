@@ -6,10 +6,10 @@
 <title>Four Seasons Supremacy</title>
 <style>
 /* ===== Base ===== */
-:root{--acc:#f6a9c2;--ui:#eef3f8;--glass:rgba(12,18,28,.42);--line:rgba(255,255,255,.16)}
+:root{--acc:#d7a6bd;--ui:#f2e4c9;--night:#25344e;--glass:rgba(23,29,58,.56);--line:rgba(242,228,201,.2)}
 *{box-sizing:border-box;margin:0}
-html,body{height:100%;overflow:hidden;background:#0b1018;color:var(--ui);
-  font:13px/1.4 "Avenir Next","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--night);color:var(--ui);
+  font:13px/1.4 "Segoe UI",system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
 button,input{font:inherit;color:inherit}
 
 /* ===== Stage: scene canvas, snow canvas, film grain, vignette ===== */
@@ -22,8 +22,8 @@ button,input{font:inherit;color:inherit}
 /* ===== HUD ===== */
 .hud{position:fixed;left:0;right:0;top:0;padding:max(18px,env(safe-area-inset-top)) 24px 44px;pointer-events:none;z-index:1;
   background:linear-gradient(rgba(5,10,18,.36),transparent);transition:opacity .6s}
-.brand{font-size:12px;letter-spacing:.18em;opacity:.8}
-#wName{font-size:clamp(30px,5.4vw,58px);font-weight:200;letter-spacing:.005em;margin-top:8px;
+.brand{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-size:14px;letter-spacing:.1em;opacity:.88}
+#wName{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;font-size:clamp(30px,5.4vw,58px);font-weight:400;letter-spacing:-.02em;margin-top:8px;
   text-shadow:0 2px 24px rgba(0,0,0,.3);transition:opacity .35s,transform .35s}
 #wSub{opacity:.78;margin-top:2px;transition:opacity .35s}
 .swap #wName,.swap #wSub{opacity:0}
@@ -35,8 +35,8 @@ button,input{font:inherit;color:inherit}
 /* ===== Control panel ===== */
 #panel{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);
   width:min(940px,calc(100% - 24px));padding:14px 16px;border-radius:18px;background:var(--glass);
-  border:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);z-index:2;
-  transition:opacity .6s,transform .6s}
+  border:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.2);-webkit-backdrop-filter:blur(18px) saturate(1.2);
+  z-index:2;transition:opacity .6s,transform .6s}
 .idle #panel{opacity:0;transform:translate(-50%,12px);pointer-events:none}
 .hide #panel,.hide .hud{opacity:0;pointer-events:none}
 #presets{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
@@ -52,7 +52,7 @@ button,input{font:inherit;color:inherit}
   padding:7px 13px;border-radius:99px;cursor:pointer;transition:background .25s,color .25s}
 .chip:hover,.btn:hover{background:rgba(255,255,255,.16)}
 .chip[aria-pressed=true]{background:var(--acc);color:#10202e;border-color:transparent}
-:focus-visible{outline:2px solid #fff;outline-offset:2px}
+:focus-visible{outline:2px solid #f2e4c9;outline-offset:2px}
 #sliders{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 20px;margin-top:14px}
 label{display:block;font-size:12px;opacity:.85}
 label output{float:right;font-variant-numeric:tabular-nums;opacity:.85}
@@ -783,8 +783,8 @@ let swapT = 0, firstPreset = true;
 
 // Seasons: tabs, per-season preset lists, remembered selection per season
 const SEASONS = [
-  { id: 'spring', label: 'Spring', acc: '#f6a9c2' }, { id: 'summer', label: 'Summer', acc: '#ffc95c' },
-  { id: 'autumn', label: 'Autumn', acc: '#ee8a3c' }, { id: 'winter', label: 'Winter', acc: '#a8d4ff' }
+  { id: 'spring', label: 'Spring', acc: '#d7a6bd' }, { id: 'summer', label: 'Summer', acc: '#e0bf72' },
+  { id: 'autumn', label: 'Autumn', acc: '#d39574' }, { id: 'winter', label: 'Winter', acc: '#a5cbd0' }
 ];
 const KIND_LABEL = { snow: 'Snowfall', rain: 'Rainfall', petal: 'Petals', leaf: 'Leaves', pollen: 'Pollen' };
 const byS = SEASONS.map(se => PRESETS.flatMap((p, i) => p.season === se.id ? [i] : []));

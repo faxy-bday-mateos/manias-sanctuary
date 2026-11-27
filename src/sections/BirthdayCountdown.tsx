@@ -32,11 +32,12 @@ function getCountdownParts(milliseconds: number): CountdownParts {
   return { days, hours, minutes, seconds }
 }
 
-export function isBirthdayUnlocked(now = new Date()) {
-  return now.getTime() >= getBirthdayDate(now).getTime()
+export function isBirthdayToday(now = new Date()) {
+  const { month, day } = birthdayContent.countdown
+  return now.getMonth() === month - 1 && now.getDate() === day
 }
 
-export function BirthdayCountdown({ onComplete }: { onComplete: () => void }) {
+export function BirthdayCountdown({ dismissed, onEnter, onComplete }: { dismissed: boolean; onEnter: () => void; onComplete: () => void }) {
   const [targetDate] = useState(() => getBirthdayDate(new Date()))
   const [remaining, setRemaining] = useState(() =>
     getCountdownParts(targetDate.getTime() - Date.now()),
@@ -72,7 +73,7 @@ export function BirthdayCountdown({ onComplete }: { onComplete: () => void }) {
   })
 
   return (
-    <section className="birthday-countdown" aria-labelledby="countdown-title">
+    <section className="birthday-countdown" aria-labelledby="countdown-title" hidden={dismissed}>
       <div className="countdown-sky" aria-hidden="true">
         <span className="countdown-moon" />
         <span className="countdown-star countdown-star--one">✦</span>
@@ -80,13 +81,26 @@ export function BirthdayCountdown({ onComplete }: { onComplete: () => void }) {
         <span className="countdown-star countdown-star--three">✦</span>
         <span className="countdown-star countdown-star--four">✧</span>
         <svg className="countdown-landscape" viewBox="0 0 1440 360" preserveAspectRatio="xMidYMax slice">
+          <path fill="none" stroke="#75f0c2" strokeWidth="28" strokeLinecap="round" opacity=".46" d="M-20 100q190-100 374-35t387-9q206-57 410 1t319-25" />
           <path fill="#354758" d="M0 180 145 94l130 86 158-112 139 99 128-73 154 86 157-115 131 103 154-79 144 98v174H0Z" />
+          <path fill="#edf5f5" d="m105 118 40-24 38 25-18-8-19-11-16 12-10-5zm289-111 39-25 43 31-23-8-19-12-17 13-11-5zm287 94 39-23 42 29-20-7-20-13-15 13-13-5zm304-86 39-24 41 29-21-7-19-13-17 13-10-5zm286 95 39-24 43 30-22-8-19-12-17 13-11-5z" />
           <path fill="#405c65" d="M0 227q200-84 384-10t372 3q220-78 410 0t274-8v160H0Z" />
           <path fill="#4a7478" d="M0 270q200-48 402 0t394 0q260-56 644 0v102H0Z" />
-          <path fill="none" stroke="#ded5b4" strokeDasharray="35 48" strokeLinecap="round" strokeWidth="2" opacity=".42" d="M83 300q71-8 142 0m202 25q56-7 112 0m242-39q86-8 172 0m185 39q56-7 112 0" />
-          <path fill="#455d50" d="M0 326q213-40 409 5t394-3q232-55 405-7t232-8v47H0Z" />
+          <path fill="none" stroke="#e1eff0" strokeDasharray="35 48" strokeLinecap="round" strokeWidth="2" opacity=".5" d="M83 300q71-8 142 0m202 25q56-7 112 0m242-39q86-8 172 0m185 39q56-7 112 0" />
+          <path fill="#dbe7e7" d="M0 326q213-40 409 5t394-3q232-55 405-7t232-8v47H0Z" />
           <g fill="#263e42">
             <path d="m93 330 48-168 50 168h-28l39 42H82l39-42zm1147 0 48-168 50 168h-28l39 42h-150l39-42z" />
+          </g>
+          <g fill="#eaf3f3">
+            <path d="m129 205 12-43 13 43-9-10-4 4-5-4z" />
+            <path d="m1183 205 13-43 12 43-8-10-5 4-5-4z" />
+          </g>
+          <g className="countdown-cabin">
+            <path d="M665 243h110v78H665z" />
+            <path d="m651 247 69-54 70 54z" />
+            <path d="m651 247 69-54 70 54-18-5-52-37-51 38z" />
+            <path d="M707 282h24v39h-24z" />
+            <path d="M677 258h18v17h-18zm70 0h18v17h-18z" />
           </g>
         </svg>
       </div>
@@ -115,6 +129,7 @@ export function BirthdayCountdown({ onComplete }: { onComplete: () => void }) {
           ))}
         </div>
         <p className="countdown-signature">{birthdayContent.countdown.signature}</p>
+        <button className="countdown-enter" type="button" onClick={onEnter}>Enter the birthday world <span aria-hidden="true">→</span></button>
       </div>
     </section>
   )

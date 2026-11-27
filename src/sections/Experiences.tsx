@@ -13,6 +13,126 @@ const wishGroups = [
 
 type WishSyncStatus = 'loading' | 'ready' | 'saving' | 'error' | 'unavailable'
 
+const matrixRainModes = [
+  { value: 'matrix', label: 'Matrix' },
+  { value: 'binary', label: 'Binary' },
+  { value: 'dream', label: 'Dream' },
+  { value: 'galaxy', label: 'Galaxy' },
+  { value: 'love', label: 'Hearts' },
+  { value: 'storm', label: 'Storm' },
+  { value: 'secret', label: 'Secret' },
+  { value: 'urdu', label: 'Urdu' },
+  { value: 'arabic', label: 'Arabic' },
+  { value: 'notes', label: 'Music notes' },
+  { value: 'flowers', label: 'Flowers' },
+  { value: 'random', label: 'Surprise me' },
+] as const
+
+type MatrixRainMode = (typeof matrixRainModes)[number]['value']
+
+interface MatrixRainEngine {
+  active: () => boolean
+  destroy: () => void
+  getMode: () => string
+  setMode: (mode: MatrixRainMode) => void
+  start: (mode: MatrixRainMode) => void
+  stop: () => void
+}
+
+declare global {
+  interface Window {
+    MatrixRain?: MatrixRainEngine
+  }
+}
+
+function isMatrixRainMode(value: string): value is MatrixRainMode {
+  return matrixRainModes.some((option) => option.value === value)
+}
+
+function MatrixRainTool() {
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [mode, setMode] = useState<MatrixRainMode>('matrix')
+  const [active, setActive] = useState(false)
+
+  useEffect(() => {
+    let disposed = false
+    const script = document.createElement('script')
+    const syncState = () => {
+      const engine = window.MatrixRain
+      if (!engine) return
+      setActive(engine.active())
+      const currentMode = engine.getMode()
+      if (isMatrixRainMode(currentMode)) setMode(currentMode)
+    }
+
+    script.src = '/100-organs-matrix-rain.js'
+    script.async = true
+    script.onload = () => {
+      if (disposed) return
+      if (!window.MatrixRain) {
+        setStatus('error')
+        return
+      }
+      window.addEventListener('matrix-rain:change', syncState)
+      setStatus('ready')
+    }
+    script.onerror = () => {
+      if (!disposed) setStatus('error')
+    }
+    document.head.appendChild(script)
+
+    return () => {
+      disposed = true
+      window.removeEventListener('matrix-rain:change', syncState)
+      window.MatrixRain?.destroy()
+      script.remove()
+    }
+  }, [])
+
+  function toggleRain() {
+    const engine = window.MatrixRain
+    if (!engine) {
+      setStatus('error')
+      return
+    }
+    if (engine.active()) {
+      engine.stop()
+      setActive(false)
+      return
+    }
+    engine.setMode(mode)
+    engine.start(mode)
+    setActive(true)
+  }
+
+  function changeMode(value: string) {
+    if (!isMatrixRainMode(value)) return
+    setMode(value)
+    if (window.MatrixRain?.active()) window.MatrixRain.setMode(value)
+  }
+
+  const message = status === 'loading'
+    ? 'Preparing the rain…'
+    : status === 'error'
+      ? 'The visual effect could not load. Please refresh and try again.'
+      : active
+        ? 'The rain is flowing over the page.'
+        : 'An optional, full-screen layer of drifting light.'
+
+  return <div className={`matrix-rain-tool${active ? ' is-active' : ''}`}>
+    <label className="matrix-rain-tool__mode">
+      <span>Choose a current</span>
+      <select value={mode} disabled={status !== 'ready'} onChange={(event) => changeMode(event.currentTarget.value)}>
+        {matrixRainModes.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}
+      </select>
+    </label>
+    <button className="matrix-rain-tool__toggle" type="button" disabled={status !== 'ready'} aria-pressed={active} onClick={toggleRain}>
+      <span aria-hidden="true">{active ? '■' : '✦'}</span> {active ? 'Stop the rain' : 'Open the rain'}
+    </button>
+    <p className="matrix-rain-tool__message" role={status === 'error' ? 'alert' : 'status'}>{message}</p>
+  </div>
+}
+
 export function HundredWishes() {
   const [open, setOpen] = useState<number | null>(0)
   const [openedWishes, setOpenedWishes] = useState<number[]>([])
@@ -114,6 +234,7 @@ export function HundredOrgans() {
       <h1>100 Organs</h1>
       <p>One Hundred Reasons You Are Worth Knowing</p>
       <span className="book-cover__seal">FOR MANUU</span>
+      <MatrixRainTool />
     </header>
     <div className="book-progress">
       <div className="book-progress__label"><span>Pages explored</span><strong aria-live="polite">{readItems.length} <span>/ {total}</span></strong></div>

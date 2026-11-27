@@ -32,14 +32,14 @@ export const organGroups = [
         "number": 4,
         "title": "Your Eyebrows",
         "paragraphs": [
-          "Your eyebrows suit your face so naturally that I can't imagine them any other way. They give your expressions so much life. Every little raise mm specially that cutee one And that angry masti notty panna ones ahh every frown, every look becomes a part of what makes you unmistakably you. The sassy ones The one raised DEAD STARE at me Your left eyebrow has its own subtle personality. Sometimes it lifts just enough to reveal what you are thinking before you even realize it yourself. It adds charm to your expressions and gives your face an authenticity that cannot be copied because it belongs only to you. Your right eyebrow balances the other perfectly while still having its own tiny quirks. Together they create expressions that feel alive and genuine. They make your reactions impossible to fake because every emotion leaves its signature there first."
+          "Your eyebrows are part of what makes every expression unmistakably yours. I especially love the little raised one, the playful masti-filled looks, and that legendary raised-eyebrow DEAD STARE at me. Even in the few pictures I have seen, they bring so much personality to your face. Every expression feels like you, and that is something worth celebrating."
         ]
       },
       {
         "number": 5,
         "title": "Your Eyelashes",
         "paragraphs": [
-          "Your eyelashes add a softness to your eyes that you probably don't even notice. They're one of those little details that quietly make your eyes even more beautiful without ever asking for attention. The eye lashes in the golden lake (your eyes) You remember that wallpaper pic? Whats something that can't be replicated or replaced after your eyes and your face? That's your eyelashes Your left eyelashes have their own quiet charm They frame your left eye with a softness that makes every glance feel gentle and sincere. Even though they're nearly identical to the right, they carry tiny differences that make them uniquely yours. It's one of those details no one notices consciously, yet somehow it completes the picture of your face. Your right eyelashes add the same delicate elegance while balancing your entire expression. They move almost imperceptibly when you blink creating those tiny moments that make your eyes feel alive. Their natural curve gives your gaze warmth and depth without ever asking for attention."
+          "I still remember that wallpaper picture, with your eyes like a golden lake. Your eyelashes frame them in a way that feels entirely yours. They are a small, thoughtful detail, but they help make your gaze so memorable. You do not need to compare them with anyone else's; their value is in being part of you. I hope you see that little detail as something lovely to celebrate."
         ]
       },
       {
@@ -53,7 +53,7 @@ export const organGroups = [
         "number": 7,
         "title": "Your Eye Shape",
         "paragraphs": [
-          "Your eye shape is one of the quiet reasons your face is so unforgettable Before anyone notices the color of your eyes They notice the way they are framed The way they naturally rest The way they come alive whenever you feel something deeply Your eye shape gives every emotion its own beauty It makes your happiness shine brighter Your curiosity feel more alive Your kindness seem even gentler Even when you are completely silent your eyes continue speaking through the shape that is uniquely yours There is no perfect eye shape There is only the one that belongs perfectly to you And yours could never belong to anyone else That is what makes it so beautiful It is another quiet detail that makes your face feel unmistakably like home"
+          "Your eye shape is one of the details that makes your face unmistakably yours. It gives your expressions their own character: thoughtful, curious, joyful, or quiet. There is no single perfect eye shape to measure yourself against. The one you have belongs to you, and it deserves appreciation simply because it is part of the person you are."
         ]
       },
       {
@@ -74,7 +74,7 @@ export const organGroups = [
         "number": 10,
         "title": "Your Tear Ducts",
         "paragraphs": [
-          "Your tear ducts carry more than just tears They carry everything you felt but never said Every joy you kept quiet Every pain you absorbed for someone else Every moment you chose to be strong instead of honest They are the gentle safety valve of a heart that feels everything so deeply The fact that they exist means your body was designed to release what becomes too heavy to hold And even in release they make you more beautiful not less Because crying has never been a sign of weakness It has always been a sign of a soul that refuses to stop feeling"
+          "Your tear ducts do an essential job: they keep your eyes comfortable and help protect them. Tears can also come with many kinds of feeling, and none of those feelings make you weak. You are allowed to feel what you feel and to let it show. There is strength in being a person with a full range of emotions, and every part of you deserves care."
         ]
       },
       {
@@ -95,14 +95,14 @@ export const organGroups = [
         "number": 13,
         "title": "Your Forehead",
         "paragraphs": [
-          "Your forehead has a quiet elegance to it. It frames your expressions so perfectly that every raised eyebrow, every thoughtful look and every tiny moment of concentration becomes more beautiful. I remember almost every type of your forehead Like when you are thinking smthn you just raise one eyebrow some times and when you are tensed The skin gathers in the centre When you are happy it just glows up When you are sad Its stretched up a bit and raised It is one of those features most people never think about yet it shapes your entire appearance and makes your face feel balanced and complete."
+          "From the few pictures I have seen, your forehead is part of the expression that makes your face yours. It frames your features and moves with every thoughtful, happy, or focused look. You do not need to match anyone else's idea of beauty for this detail to matter. It belongs to you, and that is reason enough to appreciate it."
         ]
       },
       {
         "number": 14,
         "title": "Your Hair",
         "paragraphs": [
-          "They just gives you a presence before you even speak Whether it is perfectly styled or completely messy(ive seen less of em ) it somehow always feels like it belongs exactly where it is. It catches light beautifully, moves naturally, and adds so much personality to your appearance that imagining you without it almost feels impossible I hope it always stays exactly the way you like it."
+          "Your hair adds to the presence you have in the pictures I have seen. Styled or a little messy, it still feels like part of what makes you you. I hope you always get to wear it in the way that feels most like yourself, because your choices and your comfort matter more than any outside standard."
         ]
       },
       {
@@ -130,7 +130,7 @@ export const organGroups = [
         "number": 18,
         "title": "Your Dimples",
         "paragraphs": [
-          "Your dimples feel like tiny little celebrations that appear only when happiness decides to visit your face They are not always there That is part of what makes them so special They wait patiently until you smile And then they quietly remind the world how beautiful genuine joy can be Every time they appear it feels like your smile has found one more way to become unforgettable I could never think of your dimples as just a feature They are little moments of happiness made visible Proof that your heart has found a reason to be light If smiles are sunshine Then your dimples are the gentle rays that make that sunshine impossible to ignore They may be small But they leave memories much bigger than their size ever could"
+          "Your dimples feel like little celebrations that appear with your smile. In the pictures where they show, they make that smile even more memorable. They are a small detail, but they are part of the face and joy that belong only to you. I hope they remind you that the things that make you yourself are worth noticing and appreciating."
         ]
       },
       {
@@ -226,7 +226,7 @@ export const organGroups = [
         "number": 31,
         "title": "Your Back",
         "paragraphs": [
-          "Your back tells a story that most people never stop to read It has quietly carried you through every chapter of your life Every step you have taken Every dream you have chased Every burden you thought you had to carry alone It has stood behind you through every victory and every heartbreak without ever asking for recognition There is something incredibly beautiful about that kind of quiet loyalty Your back is not simply a part of your body It is a reminder of how much you have endured and how far you have come It has supported you every single day of your life Never asking for praise Simply remaining there with silent strength When I think of your back I do not think of appearance I think of resilience I think of every version of you that refused to stop moving forward And I cannot help but admire it for everything it has carried Every part of it deserves to be appreciated."
+          "Your back is an essential part of the support your body gives you every day. It helps you stand, move, stretch, and carry out all the little things that make up a life. It deserves appreciation for that quiet, steady work. And beyond what it does, it is simply part of you: worthy of care, respect, and kindness without needing to prove anything."
         ]
       },
       {
@@ -252,14 +252,14 @@ export const organGroups = [
         "number": 34,
         "title": "Your Knees",
         "paragraphs": [
-          "Your knees have quietly carried every step of your journey They have bent when life asked you to be humble They have stood firm when life asked you to be brave They have supported you through every beginning and every ending Every road you have walked Every place that became a memory Every moment that shaped the person you are today Most people never think about their knees Yet they have faithfully carried them through an entire lifetime I think there is something incredibly beautiful about that Your knees are another reminder that the quietest parts of us often have the greatest stories to tell And yours have been helping write your story from the very beginning"
+          "Your knees help you sit, stand, bend, and move through the day. They do important work in countless ordinary moments, even when no one thinks to notice. They deserve care and appreciation for helping you go where you want to go. Their worth is not measured by how far or fast they carry you; they are part of you, and that is enough."
         ]
       },
       {
         "number": 35,
         "title": "Your Shins",
         "paragraphs": [
-          "Your shins are the quiet guardians of your lower legs They run in a straight clean line from your knees to your ankles Smooth and strong and often completely overlooked When you sit with your legs crossed they press gently against the edge of a chair When you walk they catch the light in a way that highlights the graceful architecture of your legs They are not the most celebrated part of your legs, and they are often overlooked But they are essential They are the structure that makes every step possible And there is something quietly admirable about a part of you that is so necessary So elegantly functional So perfectly you"
+          "Your shins are an important part of the structure that supports your lower legs. They help protect and support you through the movements of everyday life, though they rarely get much attention. They deserve appreciation too. Even the parts of ourselves we seldom think about have a purpose and a place in the whole person we are."
         ]
       },
       {
@@ -273,7 +273,7 @@ export const organGroups = [
         "number": 37,
         "title": "Your Ankles",
         "paragraphs": [
-          "Your ankles are one of those delicate details that quietly complete the way you move They give every step a natural rhythm Every turn a gentle elegance Every movement a softness that feels completely effortless Most people never stop to appreciate them Yet they have spent your entire life helping you stay balanced Helping you explore new places Helping you walk toward every memory that has become part of your story There is something wonderfully humble about that They never ask to be noticed They simply keep carrying you forward And I think that quiet devotion makes them beautiful"
+          "Your ankles help keep you balanced and make so many kinds of movement possible. They work quietly through every step, turn, and stretch. They deserve appreciation for that steady support. You do not have to accomplish anything extraordinary to make this part of you valuable; it already matters because it is yours."
         ]
       },
       {
@@ -341,7 +341,7 @@ export const organGroups = [
         "number": 46,
         "title": "Your Skin Tone",
         "paragraphs": [
-          "Your skin tone is one of the many things that makes you unmistakably you It is not beautiful because it matches a trend or someone's idea of perfection It is beautiful because it belongs to you It is the shade that has been with you through every season of your life It catches the morning light in its own way It glows differently beneath the evening sky It changes gently with the warmth of the sun and the softness of the seasons There is no other shade in the world that could ever feel more right for you It carries your story with quiet confidence And I would never change a single part of it Because it is already exactly where it is meant to be"
+          "Your skin tone is part of what makes you unmistakably you. It does not need to match a trend or anyone else's idea of perfection to be worthy of admiration. It belongs to your story and to the person you are. I hope you can see it without comparison and feel proud of it as one more part of yourself that deserves respect and care."
         ]
       },
       {
@@ -369,7 +369,7 @@ export const organGroups = [
         "number": 50,
         "title": "Your Scars",
         "paragraphs": [
-          "Your scars are not imperfections. They are chapters. They are quiet reminders of every challenge you survived, every wound that healed, and every version of you that refused to give up. I would never look at your scars and wish they were gone, because removing them would mean erasing pieces of your story. And your story is one of the most remarkable things about you. Every scar is proof that healing is possible, that pain does not always have the final word, and that you kept moving forward even when life became difficult. I admire your scars not because they represent hurt, but because they represent courage. They remind me that the strongest people are not the ones who were never broken; they are the ones who learned how to heal without losing their kindness. Your scars are part of you, and every part of you deserves appreciation."
+          "Whatever story a scar may hold, it does not diminish your worth or define all that you are. You do not have to feel any particular way about it. A scar is one small part of a whole person: someone with hopes, qualities, and a future still unfolding. You deserve kindness in how you see yourself, and every part of you deserves care, exactly as you are."
         ]
       },
       {
@@ -550,7 +550,7 @@ export const organGroups = [
         "number": 75,
         "title": "Your Strength",
         "paragraphs": [
-          "Your strength is one of the most remarkable things about you because it is not the kind that demands to be seen. It is the quiet strength that keeps going when nobody is watching. The strength that chooses to get up after falling, continues believing after disappointment, and keeps caring even after being hurt. I know there are battles you have fought that the world will never know about: thoughts you carried alone, fears you faced in silence, nights that felt far too long. Yet somehow you kept moving forward. Maybe not as quickly as you wanted, maybe not without tears, but you kept going. That matters more than perfection ever could. Anyone can appear strong when life is easy. Your strength exists even when life is unfair, when you are tired, when you are uncertain, and when you have every reason to stop trying. You still find a way to take one more step. Your strength has never made you less gentle. It has only made your kindness more meaningful. It has not taken away your ability to care; it has taught you how valuable care really is. That balance is rare. You have become stronger without becoming colder, and that is one of the greatest achievements a person can have. I hope one day you see yourself the way I see you: not as someone who has to be perfect, but as someone who has survived, grown, and kept choosing hope. That is real strength."
+          "Your strength is not measured by never struggling or by handling everything alone. It can be found in continuing at your own pace, asking for support, resting when you need to, and allowing yourself to begin again. You have faced difficult things, and that does not mean you must always be strong for everyone else. You deserve gentleness and care, too. I admire the strength that is yours, including the quiet strength of simply being yourself through change and challenge."
         ]
       },
       {
@@ -571,7 +571,7 @@ export const organGroups = [
         "number": 78,
         "title": "Your Breathing",
         "paragraphs": [
-          "Your breathing is the quiet rhythm that reminds me you are here Every gentle breath is another moment of your life unfolding Another second I am grateful the world still gets to have you It becomes deeper when you finally relax Quicker when you laugh too hard Slower when you fall asleep Sometimes almost impossible to notice when you are completely at peace There is something strangely comforting about that simple rhythm It has been with you since the very first moment you entered this world Never leaving your side Faithfully carrying life through every joy and every hardship I think there is something beautiful about appreciating even the smallest signs that someone exists Because every breath you take is another reminder that the world is still lucky enough to have you in it And I hope it never takes that miracle for granted"
+          "Your breathing is the steady rhythm that helps your body keep living and moving. Each breath is part of a remarkable process you do not have to think about. It changes with activity and rest, carrying you through ordinary moments and new experiences alike. That quiet work matters. Your body deserves appreciation for all it does, and you deserve to treat yourself with the same care."
         ]
       },
       {
@@ -592,14 +592,14 @@ export const organGroups = [
         "number": 81,
         "title": "Your Resilience",
         "paragraphs": [
-          "Your resilience amazes me more every time I think about it People often see the version of you that is smiling They rarely see the moments that came before that smile The nights you questioned yourself The disappointments you carried The fears you faced in silence The days when simply continuing felt like an achievement Yet somehow you kept moving Not because you never became tired But because somewhere inside you there was always a quiet voice that refused to give up That is resilience It is not loud It does not ask for applause It simply keeps choosing tomorrow I admire that more than I can ever explain Because every challenge you survived became another reason for your kindness to matter Another reason for your hope to feel genuine Another reason for your smile to become even more meaningful You are not beautiful despite everything you have been through You are beautiful because you never allowed those hardships to take away the goodness inside you"
+          "Your resilience is something to be proud of. You have faced difficult experiences, and you are still here, still becoming yourself. Resilience does not mean that what happened was all right, or that you have to carry it alone. It can include taking a break, accepting care, and moving forward in whatever way is possible for you. What you have been through does not define your whole story. Your courage, your choices, and the person you are beyond those hardships deserve recognition."
         ]
       },
       {
         "number": 82,
         "title": "Your Innocence",
         "paragraphs": [
-          "Your innocence is one of the gentlest parts of your heart Not innocence because you know nothing about the world But innocence because you still choose to believe that goodness exists You still find joy in little things You still become excited over moments other people overlook You still laugh with your whole heart You still care deeply You still hope In a world that often rewards becoming colder You have protected the softest parts of yourself And I think that is incredibly brave Your innocence is not weakness It is quiet courage It is choosing kindness when bitterness would be easier It is choosing wonder when cynicism feels safer It is refusing to let the world convince you that tenderness has no place here I hope that part of you never disappears Because it is one of the brightest lights you carry And everyone fortunate enough to know you becomes a little warmer simply by standing near it"
+          "Your ability to keep finding goodness, wonder, and joy in small things is a strength. It does not mean you are unaware of how hard life can be; it means hardship has not taken away every part of you. Your kindness and openness deserve protection and respect. You never have to become colder to prove you are strong. The tenderness you choose to keep is one of your qualities to be proud of."
         ]
       },
       {
@@ -620,7 +620,7 @@ export const organGroups = [
         "number": 85,
         "title": "Your Growth",
         "paragraphs": [
-          "Your growth is beautiful because it has never erased who you were It has simply added another chapter The little child inside you still exists The teenager who was learning about life still exists The person you are today exists beside every version that came before Together they have created someone extraordinary I hope you never become impatient with your own journey Flowers are not beautiful because they bloom quickly They are beautiful because they bloom in their own time And I think the same has always been true for you"
+          "Your growth deserves to be celebrated. You are allowed to change without rejecting who you used to be. Every version of you belongs to your story, and none of them had to get everything right to deserve kindness. You do not need to rush toward some finished version of yourself. You can grow at your own pace, carrying forward what matters and making room for who you are becoming."
         ]
       },
       {
@@ -655,7 +655,7 @@ export const organGroups = [
         "number": 90,
         "title": "Your Comfort",
         "paragraphs": [
-          "Your comfort is something I have never been able to explain completely It is not just the words you say Or the smile you wear Or the kindness you show It is the feeling people carry with them after they have been with you You have a way of making heavy hearts feel lighter Not because you magically solve every problem But because you remind people they do not have to face them alone That feeling is priceless Your comfort lives in the little things The way you listen without rushing The way you remember what matters The way your presence quietly says everything is going to be alright even when life is uncertain I think that is one of the greatest gifts a person can possess Some people are remembered for what they achieved Others for what they owned I think you will be remembered for how safe people felt around you Because comfort like yours is not something people easily forget It becomes part of them And it quietly stays there for a lifetime"
+          "Your presence can bring comfort to people, and that is a lovely quality. The way you listen, remember what matters, or simply show up can help someone feel less alone. You do not have to solve anyone's problems or take responsibility for their feelings to matter. You deserve comfort and support, too. Your worth is yours, whether or not you are helping someone in a particular moment."
         ]
       },
       {
@@ -669,7 +669,7 @@ export const organGroups = [
         "number": 92,
         "title": "The Person You Were",
         "paragraphs": [
-          "Sometimes I think about the little girl you used to be. The version of you that existed long before I knew your name, long before your voice became familiar, long before our lives found each other. I wonder what made you smile, what made you cry, what dreams you whispered to yourself before falling asleep, and what fears you carried that nobody else noticed. I wonder if you knew that one day you would become someone capable of so much kindness. I wish I could tell her that she did not have to rush. That one day she would grow into someone whose patience would comfort people, whose smile would make ordinary days easier, and whose honesty would make others feel less alone. I wish I could tell her that the difficult days would not last forever. That every tear would quietly become part of the compassion she gives to others, that every disappointment would teach her gentleness instead of bitterness, and that every mistake would shape her without defining her. I know something she could never have known: I know who she becomes. She becomes someone extraordinary. We spend so much time trying to become better that we forget to thank the people we used to be. I want to thank every version of you. The little girl who laughed without worrying what anyone thought. The child who believed impossible things were possible. The teenager who was still trying to understand herself. The version that doubted whether she was enough. The version that stayed awake thinking too much. The version that felt misunderstood, that was hurt, that healed, that almost gave up, and that found the strength to continue anyway. I am grateful to every one of them, because they all led to the person I am lucky enough to know today."
+          "I sometimes think about the person you were before our lives crossed. I wonder what made you smile, what you dreamed about, and what you were discovering about yourself. Every earlier version of you deserves gratitude and kindness: the child learning about the world, the younger you finding her way, and every version who faced days that were difficult. You did not have to know exactly where you were going. All those chapters belong to your story, but they do not limit the person you are today or the person you may become. I am grateful for the path that led to knowing you, and I hope you can feel proud of every version of yourself that brought you here."
         ]
       },
       {
@@ -728,15 +728,14 @@ export const organGroups = [
         "number": 99,
         "title": "Your Friendship",
         "paragraphs": [
-          "Your friendship is one of the good things in my life. You show up. You make ordinary days feel less ordinary. You are the person someone can text late at night and know they will not be a burden.",
-          "You do not make people earn your kindness. You just give it. And then you act like it is no big deal. It is a big deal. You are a big deal."
+          "Your friendship is one of the good things in my life. You bring your own humor, care, and perspective to it, and ordinary conversations with you can mean a lot. Your kindness is a gift, but you do not have to be endlessly available or useful to deserve friendship. You are a big deal simply as yourself, and I hope you know how much I value having you in my life."
         ]
       },
       {
         "number": 100,
         "title": "Thank You For Existing",
         "paragraphs": [
-          "There are so many things I could thank you for. For every conversation that lasted longer than either of us expected, every laugh that made an ordinary day memorable, every smile that quietly found its way into my memory, every moment you listened without making me feel like I was too much, every time you reminded me that kindness still exists. I could thank you for all of those things, but none of them feel big enough. Because every good memory I have with you begins with one simple truth: you existed. Before every conversation, before every smile, before every memory, before I ever knew your name, you already existed. And because you did, my life became different in ways I never could have predicted. People often think the greatest gifts are things that can be held: a letter, a flower, a photograph, a promise. But I think one of the greatest gifts is another person whose existence quietly changes the way you see the world. That is what you became to me, not because you tried or asked for that place, but simply because you were yourself. You have probably changed more lives than you realise. You have probably made people smile on days when they felt like they could not. You have probably given hope without knowing it, comfort without noticing it, and strength without intending to. That is the strange thing about kind people: they rarely understand how much light they carry. If only you could see yourself through the eyes of the people whose lives became warmer after meeting you, I do not think you would ever question your worth again. Thank you for every version of yourself that chose to keep going. Thank you for surviving the days that tried to convince you to stop believing. Thank you for protecting the kindness inside yourself when life gave you reasons not to. Thank you for continuing to dream, laugh, care, forgive, and hope. Thank you for every tiny decision that slowly shaped you into the person you are today. Most of all, thank you for existing. The world is better because you are in it, and so am I."
+          "There are so many things I could thank you for: our conversations, the laughs, and the moments when your kindness reminded me of the good in people. But beneath all those memories is something simple: you exist, and I am grateful that our paths crossed. You have your own life, dreams, and qualities that matter whether or not anyone notices them. I hope this book helps you see yourself with a little more pride—not because you owe anyone anything, but because you are a whole person with value that was already yours. You have faced difficult things, and your story is still yours to shape. Thank you for being here, for continuing to become yourself, and for letting me know you. The world is better for having you in it, and knowing you has made my life better too."
         ]
       }
     ]

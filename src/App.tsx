@@ -1,13 +1,13 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Hero } from './sections/Hero'
 import { FriendshipNote } from './sections/FriendshipNote'
-import { WallpaperPreview } from './sections/WallpaperPreview'
 import { HomeKeepsake } from './sections/HomeKeepsake'
 import { ClosingWish } from './sections/ClosingWish'
 import { ButterflyGarden } from './sections/ButterflyGarden'
 import { HundredOrgans, HundredWishes } from './sections/Experiences'
+import { OpenWhenLetters } from './sections/OpenWhenLetters'
+import { BirthdayCountdown, isBirthdayToday } from './sections/BirthdayCountdown'
 import { recordInteraction, recordPageVisit } from './activityTracker'
-// The birthday countdown remains available for a later launch.
 
 const AdminActivity = lazy(() =>
   import('./sections/AdminActivity').then((module) => ({ default: module.AdminActivity })),
@@ -15,18 +15,21 @@ const AdminActivity = lazy(() =>
 
 const pages = [
   { id: 'sky', title: 'Sky Observatory', hint: 'Find a star and make a wish.', icon: '✦' },
-  { id: 'wallpaper', title: 'Wallpaper Studio', hint: 'Make a little keepsake for your phone.', icon: '▧' },
   { id: 'garden', title: 'Butterfly Garden', hint: 'Follow the lights to find tiny wishes.', icon: '❋' },
   { id: 'note', title: 'A Note for You', hint: 'A few words, just for today.', icon: '♡' },
   { id: 'wishes', title: '100 Little Wishes', hint: 'A book of birthday hopes, one page at a time.', icon: '✧' },
   { id: 'organs', title: '100 Organs', hint: 'A gentle book celebrating every part of you.', icon: '❀' },
   { id: 'seasons', title: 'Four Seasons Supremacy', hint: 'Explore four seasonal skies with weather, wind, and light controls.', icon: '❄' },
+  { id: 'openwhen', title: 'Open When…', hint: 'A few kind words for the days you need them.', icon: '✉' },
 ] as const
+const worldPages = pages
 type PageId = (typeof pages)[number]['id']
 type AppPage = PageId | 'world' | 'home' | 'admin'
 
 function App() {
   const [page, setPage] = useState<AppPage>(() => readPage())
+  const [birthdayIsToday, setBirthdayIsToday] = useState(() => isBirthdayToday())
+  const [countdownDismissed, setCountdownDismissed] = useState(false)
   const [skyCleanView, setSkyCleanView] = useState(false)
   const observatoryFrame = useRef<HTMLIFrameElement>(null)
   const lastRecordedVisit = useRef('')
@@ -131,7 +134,8 @@ function App() {
       </header>}
       {page === 'home' ? (
         <div className="birthday-home birthday-home--landing">
-          <Hero />
+          {!birthdayIsToday && <BirthdayCountdown dismissed={countdownDismissed} onEnter={() => setCountdownDismissed(true)} onComplete={() => setBirthdayIsToday(true)} />}
+          <Hero birthdayMode={birthdayIsToday} />
           <HomeKeepsake />
         </div>
       ) : page === 'world' ? (
@@ -141,10 +145,10 @@ function App() {
             <div className="section__heading">
               <p className="eyebrow">A small birthday world</p>
               <h1 id="journey-title">Where would you like to wander?</h1>
-              <p className="section__intro">Six little places, each with something to discover. Take them at your own pace.</p>
+              <p className="section__intro">{worldPages.length} little places, each with something to discover. Take them at your own pace.</p>
             </div>
             <nav className="experience-grid" id="experiences" aria-label="Birthday experiences">
-              {pages.filter((item) => item.id !== 'wallpaper').map((item, index) => <a className="experience-card" href={`#/${item.id}`} key={item.id}>
+              {worldPages.map((item, index) => <a className="experience-card" href={`#/${item.id}`} key={item.id}>
                 <span className="experience-card__number">0{index + 1}</span><span className="experience-card__icon" aria-hidden="true">{item.icon}</span>
                 <h3>{item.title}</h3><p>{item.hint}</p><span className="experience-card__link">Open this little world <span aria-hidden="true">↗</span></span>
               </a>)}
@@ -155,7 +159,7 @@ function App() {
         </div>
       ) : <>
         <div className={`destination destination--${page}`}>
-        {page !== 'sky' && page !== 'seasons' && page !== 'garden' && page !== 'note' && page !== 'wishes' && page !== 'organs' && page !== 'admin' && <div className="destination__heading"><p className="eyebrow">A birthday place for Manuu</p><h1>{activeTitle}</h1></div>}
+        {page !== 'sky' && page !== 'seasons' && page !== 'garden' && page !== 'note' && page !== 'wishes' && page !== 'organs' && page !== 'openwhen' && page !== 'admin' && <div className="destination__heading"><p className="eyebrow">A birthday place for Manuu</p><h1>{activeTitle}</h1></div>}
           {page === 'sky' && <iframe
             ref={observatoryFrame}
             className="observatory-iframe"
@@ -169,11 +173,11 @@ function App() {
             src="/the-god-mode.html"
             allowFullScreen
           />}
-          {page === 'wallpaper' && <WallpaperPreview />}
           {page === 'garden' && <ButterflyGarden />}
           {page === 'note' && <FriendshipNote />}
           {page === 'wishes' && <HundredWishes />}
           {page === 'organs' && <HundredOrgans />}
+          {page === 'openwhen' && <OpenWhenLetters />}
           {page === 'admin' && (
             <Suspense fallback={<p role="status">Loading admin dashboard…</p>}>
               <AdminActivity />

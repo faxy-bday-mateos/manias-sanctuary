@@ -40,7 +40,7 @@ const PAGE_LABELS: Record<string, string> = {
   world: 'Birthday world',
   sky: 'Sky Observatory',
   'sky-observatory': 'Sky Observatory',
-  wallpaper: 'Wallpaper Studio',
+  wallpaper: 'Archived Wallpaper Studio',
   garden: 'Butterfly Garden',
   note: 'A Note for You',
   wishes: '100 Little Wishes',

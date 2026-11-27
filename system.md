@@ -1,6 +1,6 @@
 # Project Handoff for AI Assistants
 
-Last updated: 2026-11-26
+Last updated: 2026-11-27
 
 ## What this project is
 
@@ -12,12 +12,14 @@ The site is not a conventional multi-user product. Preserve its personal, gentle
 
 **Ongoing task: verify the live deployment, authorized admin dashboard access, and cross-device saved-wish progress. The public URL `https://manias-sanctuary.netlify.app` now loads publicly, but the latest check showed an earlier deployed build; the current local changes are not yet confirmed live. 100 Little Wishes now uses canvas scratch cards backed by the shared `wishUnlocks` Firestore collection; the new rule is not deployed yet.**
 
+The latest local birthday-world update adds the “Open When…” letters and a shared twilight/cream/gold visual system. It also removes the Observatory’s decorative custom cursor and mouse-following heart trail. These changes have not been deployed.
+
 The frontend and Firestore adapter have been scaffolded:
 
 - `/admin` (also `/#/admin`) has an admin sign-in and activity dashboard UI. When configured, it shows the latest 100 remote events live, pages through older events, filters by event/page/time/search, summarizes loaded events, exports CSV/JSON labeled with the download date and weekday, and lets the authorized admin delete all remote records.
 - After admin sign-in, **Preview sample data** switches the dashboard to generated in-memory page_visit/interaction records with a realistic multi-day timestamp range. It does not write to Firestore or localStorage, does not call the real recording functions, and leaves live activity untouched. **Back to live data** restores the real timeline.
 - `src/activityTracker.ts` records page visits and interactions automatically in local storage and dynamically loads Firebase to sync remotely when remote configuration is complete. The visitor opt-in gate and privacy banner were removed.
-- `src/firebaseClient.ts` signs visitors in anonymously and writes validated event fields to Firestore. It also saves compressed Wallpaper Studio photo uploads under `wallpaperUploads/{visitorUid}/images`, loads that browser's recent upload history, and loads/saves shared wishes under `wishUnlocks/wish-01` through `wishUnlocks/wish-100`.
+- `src/firebaseClient.ts` signs visitors in anonymously and writes validated event fields to Firestore. It loads and saves shared wishes under `wishUnlocks/wish-01` through `wishUnlocks/wish-100`.
 - `src/sections/WishScratchCard.tsx` draws a Canvas foil cover over each wish. Pointer scratching reveals it after roughly 30% is cleared; Enter/Space also reveals it for keyboard users. The parent merges saved unlocks and writes each new unlock as `{ unlockedAt: serverTimestamp() }`.
 - The Observatory iframe forwards sanitized events to the parent app. It does not write to Firebase directly.
 
@@ -57,7 +59,7 @@ Never put Firebase service-account credentials, admin passwords, or other secret
 - `npm run preview` previews the production build.
 - There is no test or lint script in `package.json`. Run the build for type/build validation; use `node --check` for changed standalone Observatory scripts.
 - `npm audit --omit=dev` could not complete in the latest attempt because the npm registry audit request failed; no current vulnerability result is available.
-- The latest `npm run build` passes without a chunk-size warning. Firebase dependencies are split into lazy chunks and loaded only for remote activity, admin, or wallpaper photo saving.
+- The latest `npm run build` passes without a chunk-size warning. Firebase dependencies are split into lazy chunks and loaded only for remote activity and admin.
 
 This workspace is a Git repository; check `git status` before making changes and do not overwrite unrelated user edits.
 
@@ -70,20 +72,21 @@ The app uses hash routing in `src/App.tsx`:
 | `#/` | Birthday landing page with balloon surprises |
 | `#/world` | Experience hub |
 | `#/sky` | Sky Observatory iframe |
-| `#/wallpaper` | Wallpaper scene selector and PNG download |
-| `#/garden` | Butterfly/firefly garden |
+| `#/garden` | Butterfly/firefly garden with twelve selectable seasonal landscapes |
 | `#/note` | Friendship note |
 | `#/wishes` | 100 Little Wishes |
 | `#/organs` | 100 Organs tribute |
 | `#/seasons` | Four Seasons Supremacy iframe |
+| `#/openwhen` | Six “Open When…” cards with question-first reminder pop-ups |
 | `#/admin` | Admin sign-in and activity dashboard, including in-memory sample preview |
 
 Important behavior:
 
 - The Sky Observatory is a legacy standalone HTML/CSS/JavaScript experience in `public/observatory/`, embedded by `src/App.tsx`. Keep its parent/iframe `postMessage` origin and source validation intact.
-- Four Seasons is embedded by the `/the-god-mode.html` URL, which Vite serves from `public/the-god-mode.html`. There is also a separate root-level `the-god-mode.html`; the files differ. Check which copy is being edited and keep them aligned only when the change requires it.
-- The birthday countdown component exists but is not currently included in the live route flow.
-- Wallpaper creation downloads a 1080 x 1920 PNG. The Studio also saves uploaded photos to Firestore and lists this browser's recent uploads.
+- Four Seasons is embedded by the `/the-god-mode.html` URL, which Vite serves from `public/the-god-mode.html`. Keep the root-level `the-god-mode.html` copy aligned with the public copy when changing its design or behavior.
+- The Observatory retains its sky scenes, controls, and navigation; the custom meme cursor and mouse-following heart trail were removed to bring its visual tone closer to the birthday world.
+- The home page shows a dismissible live countdown until the configured birthday (`src/birthdayContent.ts`), so the rest of the site remains accessible early. On that local calendar date it reveals the birthday-day welcome, garland, and animated fireworks. Keep `isBirthdayToday` aligned with the configured month and day when changing the countdown behavior.
+- The Butterfly Garden lets visitors select or randomize twelve day/night and weather landscapes. A snowy cabin is featured on the landing page.
 
 ## Source map
 
@@ -95,14 +98,16 @@ Important behavior:
 | `src/birthdayContent.ts` | Main page copy and labels |
 | `src/gardenContent.ts` | Butterfly/firefly and reflection data |
 | `src/organData.ts` | Long-form 100 Organs content |
+| `src/openWhenLetters.ts` | Copy for the six question-first “Open When…” notes |
+| `src/sections/OpenWhenLetters.tsx` | Accessible “Open When…” cards and question-first reminder dialog |
 | `src/sections/WishScratchCard.tsx` | Canvas scratch cover and keyboard reveal for one wish |
-| `src/wallpaperCanvas.ts` | Wallpaper drawing/export |
+| `src/seasonalScenery.ts` | Garden landscape and weather artwork |
 | `src/sections/` | React page sections, including tracker/admin components |
 | `src/components/SceneArtwork.tsx` | Shared scene artwork |
 | `public/observatory/` | Separate legacy Observatory app and its scripts/assets |
 | `public/the-god-mode.html` | Live-served Four Seasons experience |
-| `the-god-mode.html` | Separate root copy; not automatically the same as the public copy |
-| `firestore.rules` | Firestore security rules for activity events, saved wishes, and wallpaper uploads |
+| `the-god-mode.html` | Root copy kept aligned with the public Four Seasons experience |
+| `firestore.rules` | Firestore security rules for activity events and saved wishes |
 | `firebase.json`, `.firebaserc` | Firebase CLI rules target and project target |
 | `.env.example` | Environment variable template |
 | `.env.local` | Local Firebase config; ignored, do not publish |
@@ -113,15 +118,14 @@ Local event data is stored in browser `localStorage` under `birthday-activity-lo
 
 The event schema is a server timestamp, page identifier, event type (`page_visit` or `interaction`), and optional sanitized action identifier. Admin queries the most recent 100 remote events live and can page through older events. The admin page is excluded from visitor logging.
 
-Wallpaper Studio uploads are compressed client-side and stored in Firestore under `wallpaperUploads/{visitorUid}/images`; history is scoped to the browser's anonymous Firebase UID. Firestore rules validate the image data URL, timestamp, and owner path. Do not collect form contents, identity, keystrokes, answers, or referrers. The admin sample-data preview is in-memory only and must never write to either store.
-
 ## Saved wish data
 
 Unlocked wishes are stored in `wishUnlocks/{wishId}` where `wishId` is `wish-01` through `wish-100`. Each document contains only `unlockedAt`, written with a server timestamp. The collection is intentionally shared across all visitors so progress follows the site between devices; it is not tied to a named person or to the anonymous Auth UID. The rule allows any authenticated visitor to read the collection and to create/update a valid wish ID with only `unlockedAt == request.time`; only the admin can delete. Local UI state reveals cards immediately, then merges the saved set on load. Without Firebase, cards work only for the current visit.
 
 ## Known issues and caution areas
 
-- Admin tracker implementation and Wallpaper Studio photo persistence exist. Firebase services, rules, Auth providers, and Firestore App Check enforcement are configured; local Chrome visitor writes were verified, while authorized dashboard sign-in/read, photo upload/history, and the deployed host remain unverified.
+- The Wallpaper Studio and its photo upload/history feature have been removed. Historical Firestore data and rules are unchanged; no app code reads or writes those uploads.
+- Admin tracker implementation exists. Firebase services, rules, Auth providers, and Firestore App Check enforcement are configured; local Chrome visitor writes were verified, while authorized dashboard sign-in/read and the deployed host remain unverified.
 - The Firebase config in `.env.local` identifies the `mania-4f364` web app; it is not proof that visitor writes and admin reads work.
 - The `wishUnlocks` rule exists only in local `firestore.rules` so far. Cross-device wish persistence will fail until it is deployed. No browser round trip has verified scratch, save, reload, or a second device.
 - Cloud Firestore is active in `asia-south1`; keep activity in Firestore with the restrictive rules in `firestore.rules`.
@@ -135,7 +139,7 @@ Unlocked wishes are stored in `wishUnlocks/{wishId}` where `wishId` is `wish-01`
 
 1. Read the relevant component and its callers before editing. Treat the standalone Observatory as a separate application.
 2. Make small, focused changes and preserve existing content/behavior unless the request explicitly changes it.
-3. Do not claim Firebase/admin functionality works until a real automatic write, authorized admin read, wallpaper upload/history round trip, and saved-wish unlock/reload/second-device round trip have all been tested.
+3. Do not claim Firebase/admin functionality works until a real automatic write, authorized admin read, and saved-wish unlock/reload/second-device round trip have all been tested.
 4. Do not modify the 100-orgs Realtime Database rules as part of birthday-site work without explicit, narrowly scoped approval and an impact review.
 5. Never infer that a tracked browser session belongs to a named person.
 6. After code changes, run `npm run build`; run syntax checks for changed plain JavaScript and exercise the relevant route in a browser where possible.

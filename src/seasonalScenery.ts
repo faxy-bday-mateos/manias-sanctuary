@@ -1253,6 +1253,53 @@ export function drawSeasonalWeather(
   }
 }
 
+export function drawSeasonalScene(
+  ctx: CanvasRenderingContext2D,
+  sceneId: SeasonalSceneryId,
+  width: number,
+  height: number,
+) {
+  const sceneCanvas = document.createElement('canvas')
+  sceneCanvas.width = 720
+  sceneCanvas.height = 840
+  const sceneContext = sceneCanvas.getContext('2d')
+  if (!sceneContext) throw new Error('Canvas scenery rendering is not available in this browser.')
+
+  sceneContext.scale(2, 2)
+  drawSeasonalScenery(sceneContext, sceneId)
+  drawSeasonalWeather(sceneContext, sceneId)
+
+  const sceneWidth = height * (360 / 420)
+  const sceneX = (width - sceneWidth) / 2
+  const sharpCanvas = document.createElement('canvas')
+  sharpCanvas.width = Math.ceil(sceneWidth)
+  sharpCanvas.height = height
+  const sharpContext = sharpCanvas.getContext('2d')
+  if (!sharpContext) throw new Error('Canvas scenery composition is not available in this browser.')
+  sharpContext.drawImage(sceneCanvas, 0, 0, sharpCanvas.width, height)
+  sharpContext.globalCompositeOperation = 'destination-in'
+  const edgeFade = sharpContext.createLinearGradient(0, 0, sharpCanvas.width, 0)
+  edgeFade.addColorStop(0, 'rgba(255,255,255,0)')
+  edgeFade.addColorStop(0.14, '#fff')
+  edgeFade.addColorStop(0.86, '#fff')
+  edgeFade.addColorStop(1, 'rgba(255,255,255,0)')
+  sharpContext.fillStyle = edgeFade
+  sharpContext.fillRect(0, 0, sharpCanvas.width, sharpCanvas.height)
+
+  ctx.save()
+  try {
+    ctx.clearRect(0, 0, width, height)
+    ctx.filter = 'blur(90px) saturate(.75)'
+    ctx.globalAlpha = 0.84
+    ctx.drawImage(sceneCanvas, 0, 0, width, height)
+    ctx.filter = 'none'
+    ctx.globalAlpha = 1
+    ctx.drawImage(sharpCanvas, sceneX, 0)
+  } finally {
+    ctx.restore()
+  }
+}
+
 function drawFlowingStream(ctx: CanvasRenderingContext2D, time: number) {
   const waterline = (x: number, phase = 0) =>
     744 + Math.sin(x * 0.008 + time * 0.8 + phase) * 8 +

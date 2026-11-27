@@ -1,6 +1,6 @@
 # Happy Birthday, Manuu
 
-A calm, responsive birthday site built with Vite, React, and TypeScript. It includes a birthday home, an experience hub, an interactive sky observatory, seasonal skies, a butterfly garden with twelve selectable landscapes, a friendship note, six “Open When…” letters, 100 scratch-to-reveal Little Wishes, 100 Organs, and an activity tracker. Before the birthday, the home page opens with a live countdown that can be dismissed with **Enter the birthday world**; on the configured birthday, it reveals a birthday-day welcome with extra fireworks and decorations. The homepage features a snowy cabin scene, and its cake opens a candle-wish celebration with a locally synthesized Happy Birthday melody. Visuals are drawn locally with CSS, SVG, and Canvas. Remote activity reporting and saved wish unlocks require a separately configured Firebase project.
+A calm, responsive birthday site built with Vite, React, and TypeScript. It includes a birthday home, an experience hub, an interactive sky observatory, seasonal skies, a butterfly garden with twelve selectable landscapes, a friendship note, six “Open When…” letters, 100 scratch-to-reveal Little Wishes, 100 Organs, and an activity tracker. Before the configured birthday, a full-screen countdown gate covers the site and locks page scrolling. It opens automatically on November 30, revealing a birthday-day welcome with denser fireworks and decorations. The homepage features a long birthday message, a snowy cabin scene, animated fireworks, and a larger decorated cake button that opens the candle-wish celebration with a locally synthesized Happy Birthday melody. Visuals are drawn locally with CSS, SVG, and Canvas. Remote activity reporting and saved wish unlocks require a separately configured Firebase project.
 
 ## Requirements
 
@@ -83,7 +83,9 @@ Activity is recorded automatically; there is no visitor opt-in control. Events a
 - Scratch-card canvas and unlock interaction: `src/sections/WishScratchCard.tsx`
 - Firebase activity and saved-wish persistence: `src/firebaseClient.ts`
 
-The 100 Organs page uses local React content and includes an optional Matrix Rain canvas with selectable visual modes; the effect is loaded only on that page and is stopped and cleaned up when you leave. The 100 Little Wishes page keeps local UI state and loads/saves unlock progress through Firebase when configured. The separate Observatory has its own legacy scripts; activity is forwarded to the same-origin app.
+The homepage shows a short birthday paragraph in the hero, followed by a full birthday message that explains why the friendship matters, while staying clear that the two have not met face-to-face. The Friendship Note ends with a keepsake expressing the same context; completing its three games adds falling heart and flower stickers with gentle fireworks behind the revealed note. These effects respect reduced-motion settings. The 100 Organs page uses local React content and includes an optional Matrix Rain canvas with selectable visual modes; the effect is loaded only on that page and is stopped and cleaned up when you leave. The 100 Little Wishes page keeps local UI state and loads/saves unlock progress through Firebase when configured. The separate Observatory has its own legacy scripts; activity is forwarded to the same-origin app.
+
+The World Landing page has a denser, low-contrast layer of floating birthday wishes behind the experience cards, so its background feels celebratory while keeping every button and label clear.
 
 ## Visual style and Open When letters
 

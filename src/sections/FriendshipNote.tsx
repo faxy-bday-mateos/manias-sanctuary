@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent } from 'react'
+import { useEffect, useState, type CSSProperties, type KeyboardEvent } from 'react'
 import { birthdayContent } from '../birthdayContent'
 
 const mazeRows = [
@@ -38,6 +38,13 @@ const memoryFaces = [
   { id: 'heart-b', pair: 'heart', icon: '♡', label: 'Heart' },
   { id: 'flower-b', pair: 'flower', icon: '✿', label: 'Flower' },
 ] as const
+
+const celebrationStickers = ['♡', '✦', '♡', '✿', '♡', '✧', '♡', '✦', '♡', '✿', '♡', '✧', '♡', '✦', '♡', '✿']
+const celebrationFireworks = [
+  { left: '15%', top: '24%', delay: '-1.2s' },
+  { left: '82%', top: '20%', delay: '-2.3s' },
+  { left: '72%', top: '63%', delay: '-.4s' },
+]
 
 type MemoryCard = (typeof memoryFaces)[number]
 
@@ -209,10 +216,24 @@ export function FriendshipNote() {
 
   return (
     <section
-      className="section friendship"
+      className={`section friendship${stage === 4 ? ' friendship--celebrating' : ''}`}
       id="friendship-note"
       aria-labelledby="friendship-title"
     >
+      {stage === 4 && <div className="friendship__celebration" aria-hidden="true">
+        {celebrationStickers.map((symbol, index) => (
+          <span
+            className={`friendship__sticker${symbol === '♡' ? ' friendship__sticker--heart' : ''}`}
+            style={{ left: `${(index * 37 + 6) % 94}%`, animationDelay: `${-((index * 1.17) % 10)}s`, animationDuration: `${7 + (index % 5)}s`, fontSize: `${1 + (index % 3) * 0.35}rem` }}
+            key={`${symbol}-${index}`}
+          >{symbol}</span>
+        ))}
+        {celebrationFireworks.map((firework) => (
+          <span className="friendship__firework" style={{ left: firework.left, top: firework.top, animationDelay: firework.delay }} key={firework.left}>
+            {Array.from({ length: 12 }, (_, index) => <i style={{ '--note-firework-angle': `${index * 30}deg` } as CSSProperties} key={index} />)}
+          </span>
+        ))}
+      </div>}
       <div className="friendship__journey">
         <header className="friendship__journey-heading">
           <span className="friendship__eyebrow">A small moment of care</span>
@@ -389,12 +410,17 @@ export function FriendshipNote() {
                   <path d="M24 7v9m-4.5-4.5h9" />
                 </svg>
               </span>
-              <h2>A little note, found with care</h2>
+              <h2>A little note, chosen with care</h2>
               <span className="friendship__rule" aria-hidden="true" />
             </header>
             <p className="eyebrow friendship__kicker">{birthdayContent.friendship.kicker}</p>
             <h3>{birthdayContent.friendship.title}</h3>
             <p className="friendship__paragraph">{birthdayContent.friendship.paragraph}</p>
+            <ul className="friendship__reasons" aria-label="What I value in our friendship">
+              {birthdayContent.friendship.reasons.map((reason) => (
+                <li key={reason.text}><span aria-hidden="true">{reason.symbol}</span>{reason.text}</li>
+              ))}
+            </ul>
             <footer className="friendship__signoff">
               <span className="friendship__closing">{birthdayContent.friendship.closing}</span>
               <span className="friendship__flourish" aria-hidden="true">✦　✦　✦</span>

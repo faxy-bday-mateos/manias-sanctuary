@@ -1,5 +1,6 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Hero } from './sections/Hero'
+import { BirthdayMessage } from './sections/BirthdayMessage'
 import { FriendshipNote } from './sections/FriendshipNote'
 import { HomeKeepsake } from './sections/HomeKeepsake'
 import { ClosingWish } from './sections/ClosingWish'
@@ -23,13 +24,32 @@ const pages = [
   { id: 'openwhen', title: 'Open When…', hint: 'A few kind words for the days you need them.', icon: '✉' },
 ] as const
 const worldPages = pages
+const birthdayWorldPhrases = [
+  'Happy Birthday, Manuu — this day is yours.',
+  'May today bring you reasons to smile.',
+  'I hope you feel celebrated and cared for.',
+  'May the year ahead be kind to you.',
+  'I’m grateful to have you as my friend.',
+  'You deserve a birthday full of warmth.',
+  'Keep being proud of the person you are.',
+  'Here’s to your wishes, laughter, and new beginnings.',
+  'Happy Birthday', 'Make a Wish', 'Celebrate You', 'A Little Birthday Magic',
+  'Your Day to Shine', 'Birthday Wishes', 'Here’s to You', 'All the Lovely Things',
+  'Another Year of You', 'Make Today Yours', 'A Day Full of Wonder', 'Keep Glowing',
+  'Candles & Wishes', 'So Much to Celebrate', 'Little Joys, Big Wishes', 'Let the Day Sparkle',
+  'Wishing You Joy', 'A Birthday Made for You', 'A Little Extra Magic', 'May Your Wishes Find You',
+  'Here’s to New Adventures', 'Today, We Celebrate You', 'Joy in Every Little Thing', 'May This Year Be Kind',
+  'A Heart Full of Wishes', 'Shine in Your Own Way', 'Let the Candles Shine', 'Your Story Keeps Blooming',
+  'More Reasons to Smile', 'A Day to Feel Proud', 'May Good Things Find You', 'Keep Making Wishes',
+  'A Year of Little Wonders', 'Your Kind of Birthday Magic', 'The Best Is Still Unfolding', 'Sending Birthday Cheer',
+  'A Wish for Every Candle', 'Celebrate Every Bit of You', 'Here’s to Happy Moments', 'May Today Feel Special',
+]
 type PageId = (typeof pages)[number]['id']
 type AppPage = PageId | 'world' | 'home' | 'admin'
 
 function App() {
   const [page, setPage] = useState<AppPage>(() => readPage())
   const [birthdayIsToday, setBirthdayIsToday] = useState(() => isBirthdayToday())
-  const [countdownDismissed, setCountdownDismissed] = useState(false)
   const [skyCleanView, setSkyCleanView] = useState(false)
   const observatoryFrame = useRef<HTMLIFrameElement>(null)
   const lastRecordedVisit = useRef('')
@@ -132,15 +152,25 @@ function App() {
         {page !== 'seasons' && <a className="site-brand" href={isAdminPath ? '/' : '#/'} aria-label="Manuu's birthday home">✦ <span>for Manuu</span></a>}
         {page !== 'home' && <button className="back-home" type="button" onClick={goHome}>← Birthday home</button>}
       </header>}
+      {!birthdayIsToday && <BirthdayCountdown onComplete={() => setBirthdayIsToday(true)} />}
       {page === 'home' ? (
         <div className="birthday-home birthday-home--landing">
-          {!birthdayIsToday && <BirthdayCountdown dismissed={countdownDismissed} onEnter={() => setCountdownDismissed(true)} onComplete={() => setBirthdayIsToday(true)} />}
           <Hero birthdayMode={birthdayIsToday} />
+          <BirthdayMessage />
           <HomeKeepsake />
         </div>
       ) : page === 'world' ? (
         <div className="birthday-world">
           <section className="journey section" aria-labelledby="journey-title">
+          <div className="birthday-world__words" aria-hidden="true">
+            {birthdayWorldPhrases.map((phrase, index) => (
+              <span
+                className={`birthday-world__word birthday-world__word--${index % 4}${index < 8 ? ' birthday-world__word--message' : ''}`}
+                style={{ '--phrase-left': `${(index * 43 + 7) % 79}%`, '--phrase-top': `${(index * 37 + 11) % 88}%`, animationDelay: `${-((index * 1.25) % 9)}s`, animationDuration: `${12 + (index % 6)}s` } as CSSProperties}
+                key={phrase}
+              >{phrase}</span>
+            ))}
+          </div>
           <div className="section__inner">
             <div className="section__heading">
               <p className="eyebrow">A small birthday world</p>

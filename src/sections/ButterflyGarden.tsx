@@ -8,9 +8,8 @@ import {
   type GardenRarity,
 } from '../gardenContent'
 import {
-  drawSeasonalScenery,
+  drawSeasonalScene,
   drawSeasonalMotion,
-  drawSeasonalWeather,
   gardenTreePerches,
   getSeasonalScenery,
   seasonalSceneries,
@@ -395,8 +394,7 @@ export function ButterflyGarden() {
       canvas.height = 900
       const context = canvas.getContext('2d')
       if (!context) throw new Error('Canvas rendering is not available in this browser.')
-      drawSeasonalScenery(context, scenery, canvas.width, canvas.height)
-      drawSeasonalWeather(context, scenery, canvas.width, canvas.height)
+      drawSeasonalScene(context, scenery, canvas.width, canvas.height)
       setSceneryReady(true)
       setSceneryStatus('')
     } catch (error) {

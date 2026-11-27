@@ -19,12 +19,21 @@ export const birthdayContent = {
     kicker: 'A little corner, just for today',
     subtitle:
       'Today is a chance to celebrate you. I hope it brings a little joy and a moment to feel appreciated.',
+    birthdayMessage:
+      'Happy birthday, Manuu. Today is for celebrating you: the strong, thoughtful person you are, and all the ways you keep becoming yourself. I’m so grateful I get to call you my friend. Even though we have never met in person, your place in my life is real and important to me. You have faced hard chapters, and I hope you can look at how far you have come with pride, while remembering that you do not have to be strong every moment to deserve kindness. I hope this birthday brings you comfort, laughter, and little surprises that make you feel cared for. May the year ahead be gentler, brighter, and full of new reasons to feel proud. You deserve to feel celebrated today and all year long.',
     balloonNotes: [
       'May today bring you little moments that make you smile.',
       'You deserve to feel celebrated, today and every day.',
       'I hope this year brings you gentle days and bright surprises.',
       'A little reminder: you make this world sweeter just by being in it.',
     ],
+  },
+  birthdayMessage: {
+    kicker: 'A birthday message, just for you',
+    title: 'I’m so glad you’re my friend.',
+    paragraph:
+      'Happy birthday, Manuu. I hope today gives you room to feel celebrated and proud of how far you have come. Even though we have never met in person, your friendship has become important to me. I chose you as my friend because I value who you are: your strength, your heart, and the way your presence matters. You do not have to be perfect or have everything figured out to deserve care and support. I hope the year ahead brings you gentler days, easy laughter, and plenty of reminders that you are worthy of good things. You deserve to feel celebrated today and all year long.',
+    signoff: 'With care, and the happiest of birthdays.',
   },
   scenes: {
     kicker: 'A little place to land',
@@ -77,10 +86,15 @@ export const birthdayContent = {
     ],
   },
   friendship: {
-    kicker: 'A note for you',
-    title: 'I’m glad I chose you as a friend.',
+    kicker: 'Why I chose your friendship',
+    title: 'I chose you because you matter to me.',
     paragraph:
-      'Our friendship means a lot to me. I value you, and I’m grateful to have you in my life. I hope you feel celebrated today and in the year ahead.',
+      'Even though we have never met face-to-face, the friendship we have is real and important to me. I chose you because of the person I have come to know through what you share: someone with strength to be proud of, a heart deserving of care, and a presence that matters simply because it is yours. I wanted to be your friend because I value you as you are. You do not have to prove your worth or have everything figured out to deserve kindness and support. I hope today reminds you how much your friendship means to me, and gives you another reason to feel proud of the person you are.',
+    reasons: [
+      { symbol: '✦', text: 'Your strength is worth celebrating.' },
+      { symbol: '♡', text: 'You deserve care as your full, real self.' },
+      { symbol: '✧', text: 'Your place in my life matters.' },
+    ],
     closing: 'With care, and happy birthday.',
   },
   closing: {

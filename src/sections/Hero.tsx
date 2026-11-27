@@ -69,6 +69,14 @@ const confettiPieces = [
   ['c13', '78%', '-24%', '#ebc0a6'],
 ] as const
 
+const ambientFireworks = [
+  { id: 'left-high', top: '20%', left: '16%', color: '#ffe6a1', delay: '-.8s' },
+  { id: 'right-high', top: '16%', left: '82%', color: '#ffd1cb', delay: '-2.1s' },
+  { id: 'center-left', top: '38%', left: '33%', color: '#bce4d3', delay: '-1.6s' },
+  { id: 'center-right', top: '35%', left: '70%', color: '#d8c7f0', delay: '-.3s' },
+  { id: 'far-left', top: '53%', left: '8%', color: '#f4ca7d', delay: '-2.8s' },
+] as const
+
 export function Hero({ birthdayMode = false }: { birthdayMode?: boolean }) {
   const [balloons, setBalloons] = useState(initialBalloons)
   const [balloonNote, setBalloonNote] = useState<{ id: number; text: string } | null>(null)
@@ -266,6 +274,15 @@ export function Hero({ birthdayMode = false }: { birthdayMode?: boolean }) {
         <div className="hero__snowfall" />
       </div>
       <div className="hero__celebration" aria-hidden="true">
+        <div className={`hero__ambient-fireworks${birthdayMode ? ' hero__ambient-fireworks--birthday' : ''}`}>
+          {ambientFireworks.map((burst) => (
+            <span className="hero__ambient-burst" key={burst.id} style={{ top: burst.top, left: burst.left, '--ambient-firework-color': burst.color, '--ambient-firework-delay': burst.delay } as CSSProperties}>
+              {Array.from({ length: birthdayMode ? 22 : 16 }, (_, index) => (
+                <i key={index} style={{ '--ambient-firework-angle': `${(360 / (birthdayMode ? 22 : 16)) * index}deg`, '--ambient-firework-particle-delay': `${index * 18}ms` } as CSSProperties} />
+              ))}
+            </span>
+          ))}
+        </div>
         {birthdayMode && <div className="hero__birthday-fireworks">
           <span className="hero__birthday-burst hero__birthday-burst--one">✦</span>
           <span className="hero__birthday-burst hero__birthday-burst--two">✧</span>
@@ -312,6 +329,7 @@ export function Hero({ birthdayMode = false }: { birthdayMode?: boolean }) {
         onClick={openBirthdayCelebration}
       >
         <CakeArtwork candlesBlown={false} />
+        <span className="hero__cake-hint">Make a wish <span aria-hidden="true">✦</span></span>
       </button>
       <div className="hero__balloons">
         {balloons.map((balloon) => (
@@ -344,6 +362,7 @@ export function Hero({ birthdayMode = false }: { birthdayMode?: boolean }) {
         <p className="eyebrow">{birthdayContent.welcome.kicker}</p>
         <h1 id="hero-heading">{birthdayContent.greeting}</h1>
         <p className="hero__subtitle">{birthdayContent.welcome.subtitle}</p>
+        <p className="hero__birthday-message">{birthdayContent.welcome.birthdayMessage}</p>
         <span className="hero__ornament" aria-hidden="true">✦</span>
         <nav className="hero__actions" aria-label="Explore the birthday site">
           <a className="hero__action hero__action--primary" href="#/world">
@@ -439,6 +458,7 @@ function CakeArtwork({
       <span className="hero__cake-candle hero__cake-candle--two" />
       <span className="hero__cake-candle hero__cake-candle--three" />
       <span className="hero__cake-top" />
+      <span className="hero__cake-berry" />
       <span className="hero__cake-base" />
       <span className="hero__cake-plate" />
     </span>

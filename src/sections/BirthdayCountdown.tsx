@@ -37,11 +37,19 @@ export function isBirthdayToday(now = new Date()) {
   return now.getMonth() === month - 1 && now.getDate() === day
 }
 
-export function BirthdayCountdown({ dismissed, onEnter, onComplete }: { dismissed: boolean; onEnter: () => void; onComplete: () => void }) {
+export function BirthdayCountdown({ onComplete }: { onComplete: () => void }) {
   const [targetDate] = useState(() => getBirthdayDate(new Date()))
   const [remaining, setRemaining] = useState(() =>
     getCountdownParts(targetDate.getTime() - Date.now()),
   )
+
+  useEffect(() => {
+    const previousOverflow = document.documentElement.style.overflow
+    document.documentElement.style.overflow = 'hidden'
+    return () => {
+      document.documentElement.style.overflow = previousOverflow
+    }
+  }, [])
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -73,7 +81,7 @@ export function BirthdayCountdown({ dismissed, onEnter, onComplete }: { dismisse
   })
 
   return (
-    <section className="birthday-countdown" aria-labelledby="countdown-title" hidden={dismissed}>
+    <section className="birthday-countdown" aria-labelledby="countdown-title">
       <div className="countdown-sky" aria-hidden="true">
         <span className="countdown-moon" />
         <span className="countdown-star countdown-star--one">✦</span>
@@ -129,7 +137,6 @@ export function BirthdayCountdown({ dismissed, onEnter, onComplete }: { dismisse
           ))}
         </div>
         <p className="countdown-signature">{birthdayContent.countdown.signature}</p>
-        <button className="countdown-enter" type="button" onClick={onEnter}>Enter the birthday world <span aria-hidden="true">→</span></button>
       </div>
     </section>
   )

@@ -109,7 +109,7 @@ const collectionStorageKey = 'manias-sanctuary:butterfly-garden:v1'
 const bloomMilestones = [3, 8, 15, butterflySpecies.length + fireflySpecies.length]
 const bloomNames = [
   'First blooms',
-  'Cottage lights',
+  'A fuller garden',
   'Grove glimmers',
   'Island in full bloom',
 ]

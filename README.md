@@ -45,7 +45,7 @@ The project is not deployed by these instructions.
 
 ## Remote activity dashboard
 
-The activity tracker logs page visits and control clicks/changes automatically. It does not collect identity, referrers, typed text, puzzle answers, scrolling, or keystrokes. Without Firebase configuration, the log remains local to that browser. With Firebase configured, events are sent to a protected Firestore collection and can be viewed at `/admin` (or `/#/admin`).
+The activity tracker automatically records page visits and user control interactions (such as clicks and selection changes). It does not collect identity, referrers, typed text, puzzle answers, scrolling, or keystrokes. Without Firebase configuration, the log remains local to that browser. With Firebase configured, events are sent to a protected Firestore collection and can be viewed at `/admin` (or `/#/admin`).
 
 The tracker is configured for the Firebase project `mania-4f364` and stores activity in the `activityEvents` Cloud Firestore collection. Keep this data in Firestore; do not use or change the separate 100-orgs Realtime Database or its rules.
 
@@ -67,7 +67,7 @@ Firebase project `mania-4f364` has Cloud Firestore in `asia-south1`, Anonymous a
 
 On a clean checkout, copy `.env.example` to `.env.local` and fill in the Web app config, exact admin UID, and reCAPTCHA Enterprise site key. `.env.local` is ignored by Git, and `.env.example` contains placeholders only. The Firebase Web API key and App Check site key are client identifiers, not admin secrets. Never put service-account keys or admin passwords in `VITE_` variables or source control. Configure hosting build variables only when preparing a requested site deployment; the Firebase CLI target is `mania-4f364`.
 
-Activity is recorded automatically; there is no visitor opt-in control. Events are not tied to a real-world identity, and browser-side event reporting is not proof of who used the site. The admin can delete all remote activity events from the dashboard.
+Page visits and user control interactions are recorded automatically. Events are not tied to a real-world identity, and browser-side event reporting is not proof of who used the site. The admin can delete all remote activity events from the dashboard.
 
 ## Editing
 

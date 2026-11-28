@@ -33,58 +33,8 @@ export const birthdayContent = {
     kicker: 'A birthday message, just for you',
     title: 'I’m so glad you’re my friend.',
     paragraph:
-      'Happy birthday, Manuu. I hope today gives you room to feel celebrated and proud of how far you have come. Even though we have never met in person, your friendship has become important to me. I chose you as my friend because I value who you are: your strength, your heart, and the way your presence matters. You do not have to be perfect or have everything figured out to deserve care and support. I hope the year ahead brings you gentler days, easy laughter, and plenty of reminders that you are worthy of good things. You deserve to feel celebrated today and all year long.',
+      'Happy birthday, Manuu. I hope today brings easy laughter, little surprises, and a chance to feel proud of how far you have come. May the year ahead hold bright plans, good people, and plenty of small moments that feel unmistakably yours.',
     signoff: 'With care, and the happiest of birthdays.',
-  },
-  scenes: {
-    kicker: 'A little place to land',
-    title: 'Choose a softer kind of quiet.',
-    intro: 'Three small scenes, each with its own way of slowing down.',
-    selectorLabel: 'Choose a scene',
-    items: [
-      {
-        kind: 'night',
-        label: 'Night Sky',
-        title: 'Under the night sky',
-        description: 'A little stillness beneath the stars.',
-      },
-      {
-        kind: 'ocean',
-        label: 'Ocean',
-        title: 'Beside the ocean',
-        description: 'Slow waves and room to breathe.',
-      },
-      {
-        kind: 'room',
-        label: 'Cozy Room',
-        title: 'In a cozy room',
-        description: 'Warm light on an unhurried evening.',
-      },
-    ] as const,
-  },
-  surprise: {
-    kicker: 'A small bright thing',
-    title: 'A gentle wish for your year.',
-    groupLabel: 'Small birthday surprises',
-    hint: 'Tap a butterfly or light to find a little wish.',
-    closeLabel: 'Close wish',
-    messages: [
-      {
-        kind: 'butterfly',
-        accessibleName: 'Open butterfly surprise',
-        message: 'May you find a little joy in the ordinary.',
-      },
-      {
-        kind: 'firefly',
-        accessibleName: 'Open firefly surprise',
-        message: 'May the year ahead bring you room to grow at your own pace.',
-      },
-      {
-        kind: 'butterfly',
-        accessibleName: 'Open butterfly surprise',
-        message: 'May you feel cared for, today and all year long.',
-      },
-    ],
   },
   friendship: {
     kicker: 'Why I chose your friendship',

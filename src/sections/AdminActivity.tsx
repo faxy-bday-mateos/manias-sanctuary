@@ -44,7 +44,7 @@ const PAGE_LABELS: Record<string, string> = {
   garden: 'Butterfly Garden',
   note: 'A Note for You',
   wishes: '100 Little Wishes',
-  organs: '100 Organs',
+  organs: '100 Things I Appreciate About You',
   seasons: 'Four Seasons Supremacy',
   activity: 'Activity Tracker',
 }

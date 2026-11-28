@@ -1108,25 +1108,116 @@ function drawLandscape(ctx: CanvasRenderingContext2D, scene: SeasonalSceneryDefi
   }
 }
 
+// Retain the original portrait-scene helpers for callers of drawSeasonalWeather
+// and for downstream consumers while the garden itself uses the wide renderer.
+void drawSky
+void drawMountains
+void drawGlowSources
+void drawLandscape
+
 export function drawSeasonalScenery(
   ctx: CanvasRenderingContext2D,
   sceneId: SeasonalSceneryId,
-  width = 360,
-  height = 420,
+  width = 1440,
+  height = 900,
 ) {
   const scene = getSeasonalScenery(sceneId)
   if (!scene.landscape) throw new Error(`Scenery artwork is missing: ${sceneId}`)
   ctx.save()
   try {
-    ctx.scale(width / 360, height / 420)
-    drawSky(ctx, scene)
-    drawMountains(ctx, scene)
-    drawGround(ctx, scene)
-    drawLandscape(ctx, scene)
-    drawGlowSources(ctx, scene)
+    const scale = Math.max(width / 1440, height / 900)
+    const sceneWidth = 1440 * scale
+    ctx.translate(width < height * 1.15 ? width - sceneWidth : (width - sceneWidth) / 2, (height - 900 * scale) / 2)
+    ctx.scale(scale, scale)
+    drawWideLandscape(ctx, scene)
   } finally {
     ctx.restore()
   }
+}
+
+function drawWideLandscape(ctx: CanvasRenderingContext2D, scene: SeasonalSceneryDefinition) {
+  const [top, middle, horizon] = scene.sky
+  const sky = ctx.createLinearGradient(0, 0, 0, 760)
+  sky.addColorStop(0, top); sky.addColorStop(.62, middle); sky.addColorStop(1, horizon)
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, 1440, 900)
+  if (scene.stars || scene.celestial === 'moon') {
+    ctx.fillStyle = '#fff5db'
+    for (let i = 0; i < 92; i++) {
+      const x = (i * 193 + 37) % 1440, y = (i * 97 + 29) % 430
+      if (x > 465 && x < 980 && y < 300) continue
+      ctx.globalAlpha = .28 + (i % 5) * .1
+      ctx.beginPath(); ctx.arc(x, y, .8 + (i % 3) * .45, 0, Math.PI * 2); ctx.fill()
+    }
+    ctx.globalAlpha = 1
+  }
+  if (scene.celestial !== 'none') {
+    const x = (scene.celestialPosition?.x ?? .82) * 1440, y = (scene.celestialPosition?.y ?? .2) * 900
+    const glow = ctx.createRadialGradient(x, y, 4, x, y, 130)
+    glow.addColorStop(0, `${scene.accent}88`); glow.addColorStop(1, `${scene.accent}00`)
+    ctx.fillStyle = glow; ctx.fillRect(x - 140, y - 140, 280, 280)
+    ctx.fillStyle = scene.accent; ctx.globalAlpha = .86; ctx.beginPath(); ctx.arc(x, y, scene.celestial === 'sun' ? 43 : 30, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1
+  }
+  const ridge = (color: string, y: number, amp: number, phase: number) => {
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, y)
+    for (let x = 0; x <= 1440; x += 90) ctx.lineTo(x, y + Math.sin(x * .008 + phase) * amp + Math.sin(x * .019) * amp * .3)
+    ctx.lineTo(1440, 900); ctx.lineTo(0, 900); ctx.closePath(); ctx.fill()
+  }
+  ridge(`${scene.sky[2]}88`, 480, 65, 1); ridge(scene.ridge, 565, 54, 3)
+  const lake = ['cabin-lake', 'frozen-lake', 'misty-lake', 'bridge', 'lighthouse'].includes(scene.landscape ?? '')
+  const groundY = lake ? 710 : 690
+  const ground = ctx.createLinearGradient(0, groundY, 0, 900)
+  ground.addColorStop(0, scene.ground); ground.addColorStop(1, `${scene.ground}c9`)
+  ctx.fillStyle = ground; ctx.fillRect(0, groundY, 1440, 210)
+  if (lake) {
+    const water = ctx.createLinearGradient(0, 690, 0, 900)
+    water.addColorStop(0, scene.water); water.addColorStop(1, '#101e34')
+    ctx.fillStyle = water; ctx.fillRect(0, 690, 1440, 210)
+    ctx.globalAlpha = .2; ctx.strokeStyle = scene.accent; ctx.lineWidth = 2
+    for (let i = 0; i < 22; i++) { const x = (i * 167 + 29) % 1440, y = 724 + (i * 37) % 155; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 35, y - 4, x + 82, y); ctx.stroke() }
+    ctx.globalAlpha = 1
+  }
+  // Broad, scene-specific landmarks preserve open sky for the heading and tree space on the right.
+  const pine = (x: number, base: number, size: number, color: string) => {
+    ctx.fillStyle = '#403d3b'; ctx.fillRect(x - size * .035, base - size * .17, size * .07, size * .18)
+    ctx.fillStyle = color
+    for (let n = 0; n < 4; n++) { const y = base - size * (.35 + n * .18), w = size * (.42 - n * .055); ctx.beginPath(); ctx.moveTo(x, y - size * .25); ctx.lineTo(x - w, y + size * .18); ctx.lineTo(x + w, y + size * .18); ctx.closePath(); ctx.fill() }
+  }
+  if (['cabin-lake','frozen-lake','pine-forest','mountain-pass','village','greenhouse'].includes(scene.landscape ?? '')) {
+    for (let i = 0; i < 24; i++) { const x = i * 67 - 20, size = 100 + (i * 37) % 130; pine(x, 690 + (i % 3) * 24, size, i % 2 ? '#233b43' : '#1a303c') }
+  }
+  if (scene.landscape === 'cabin-lake') {
+    ctx.fillStyle = '#58484a'; ctx.fillRect(490, 555, 330, 155)
+    ctx.fillStyle = '#352f3c'; ctx.beginPath(); ctx.moveTo(455, 570); ctx.lineTo(650, 440); ctx.lineTo(855, 570); ctx.closePath(); ctx.fill()
+    ctx.fillStyle = scene.accent; ctx.shadowColor = scene.accent; ctx.shadowBlur = 32
+    ctx.fillRect(535, 600, 52, 55); ctx.fillRect(720, 600, 52, 55); ctx.shadowBlur = 0
+    ctx.fillStyle = '#443b3c'; ctx.fillRect(630, 620, 55, 90); ctx.fillStyle = '#493b38'; ctx.fillRect(744, 460, 30, 92)
+  } else if (scene.landscape === 'village') {
+    for (let i = 0; i < 10; i++) { const x = 90 + i * 130, y = 610 + (i % 3) * 25; ctx.fillStyle = '#59464a'; ctx.fillRect(x, y, 92, 90); ctx.fillStyle = '#392f3c'; ctx.beginPath(); ctx.moveTo(x - 14, y + 4); ctx.lineTo(x + 46, y - 54); ctx.lineTo(x + 108, y + 4); ctx.fill(); ctx.fillStyle = scene.accent; ctx.fillRect(x + 20, y + 27, 19, 24); ctx.fillRect(x + 57, y + 27, 19, 24) }
+  } else if (scene.landscape === 'greenhouse') {
+    ctx.fillStyle = '#59866b88'; ctx.strokeStyle = '#e2d7b6'; ctx.lineWidth = 8; ctx.beginPath(); ctx.moveTo(480, 700); ctx.lineTo(550, 480); ctx.lineTo(910, 480); ctx.lineTo(990, 700); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(730, 490); ctx.lineTo(730, 698); ctx.moveTo(530, 600); ctx.lineTo(940, 600); ctx.stroke()
+  } else if (scene.landscape === 'blossom-garden') {
+    for (const x of [100, 380, 1090, 1280]) { ctx.strokeStyle = '#604943'; ctx.lineWidth = 24; ctx.beginPath(); ctx.moveTo(x, 720); ctx.lineTo(x + 12, 470); ctx.moveTo(x + 5, 560); ctx.lineTo(x - 100, 490); ctx.moveTo(x + 8, 535); ctx.lineTo(x + 100, 470); ctx.stroke(); ctx.fillStyle = '#ecabc0'; for (let n = 0; n < 20; n++) { ctx.globalAlpha = .5 + (n % 4) * .12; ctx.beginPath(); ctx.arc(x - 115 + (n * 53) % 230, 440 + (n * 29) % 100, 18 + n % 12, 0, Math.PI * 2); ctx.fill() } }
+    ctx.globalAlpha = 1
+  } else if (scene.landscape === 'bridge') {
+    ctx.strokeStyle = '#594943'; ctx.lineWidth = 30; ctx.beginPath(); ctx.moveTo(0, 735); ctx.quadraticCurveTo(720, 500, 1440, 735); ctx.stroke(); ctx.strokeStyle = '#c69b66'; ctx.lineWidth = 8; ctx.stroke()
+  } else if (scene.landscape === 'lighthouse') {
+    ctx.fillStyle = '#e7e1d2'; ctx.fillRect(275, 455, 92, 260); ctx.fillStyle = '#4a5357'; ctx.beginPath(); ctx.moveTo(255, 466); ctx.lineTo(321, 405); ctx.lineTo(388, 466); ctx.fill(); ctx.fillStyle = scene.accent; ctx.fillRect(294, 488, 55, 38)
+  } else if (scene.landscape === 'meadow') {
+    ctx.fillStyle = '#6fae8a'; ctx.beginPath(); ctx.moveTo(0, 692); ctx.quadraticCurveTo(360, 610, 720, 690); ctx.quadraticCurveTo(1080, 610, 1440, 680); ctx.lineTo(1440, 900); ctx.lineTo(0, 900); ctx.fill()
+    for (let i = 0; i < 100; i++) { const x = (i * 137 + 29) % 1440, y = 718 + (i * 71) % 160; ctx.strokeStyle = '#477647'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y + 24); ctx.lineTo(x + (i % 2 ? 7 : -5), y); ctx.stroke(); ctx.fillStyle = ['#ff6fa5','#ffd84a','#ffffff','#8a6bff'][i % 4]; ctx.beginPath(); ctx.arc(x + (i % 2 ? 7 : -5), y, 5, 0, Math.PI * 2); ctx.fill() }
+  } else if (scene.landscape === 'orchard') {
+    for (const x of [80, 330, 580, 830, 1080, 1330]) { ctx.fillStyle = '#70513c'; ctx.fillRect(x, 485, 24, 250); ctx.fillStyle = '#d57934'; ctx.beginPath(); ctx.arc(x + 12, 485, 105, 0, Math.PI * 2); ctx.fill(); ctx.beginPath(); ctx.arc(x + 80, 545, 72, 0, Math.PI * 2); ctx.fill() }
+  } else if (scene.landscape === 'mountain-pass') {
+    ctx.fillStyle = '#e7edf0'; ctx.beginPath(); ctx.moveTo(0, 670); ctx.lineTo(220, 500); ctx.lineTo(410, 650); ctx.lineTo(670, 460); ctx.lineTo(900, 680); ctx.lineTo(1190, 505); ctx.lineTo(1440, 650); ctx.lineTo(1440, 900); ctx.lineTo(0, 900); ctx.fill()
+  }
+  if (scene.aurora) drawAuroraWide(ctx)
+  const wash = ctx.createLinearGradient(0, 0, 0, 900); wash.addColorStop(0, '#09152312'); wash.addColorStop(.7, '#09152300'); wash.addColorStop(1, '#09152324'); ctx.fillStyle = wash; ctx.fillRect(0, 0, 1440, 900)
+}
+
+function drawAuroraWide(ctx: CanvasRenderingContext2D) {
+  ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.lineCap = 'round'
+  for (const [i, color] of ['#75f0c2','#75c9e8','#c18cf2'].entries()) { const y = 250 + i * 44, g = ctx.createLinearGradient(0, y, 1440, y); g.addColorStop(0, `${color}00`); g.addColorStop(.28, `${color}55`); g.addColorStop(.7, `${color}33`); g.addColorStop(1, `${color}00`); ctx.globalAlpha = .42; ctx.strokeStyle = g; ctx.lineWidth = 40 - i * 8; ctx.beginPath(); ctx.moveTo(-30, y + 60); ctx.bezierCurveTo(360, y - 80, 800, y + 95, 1470, y - 25); ctx.stroke() }
+  ctx.restore()
 }
 
 export function drawSeasonalWeather(
@@ -1259,45 +1350,7 @@ export function drawSeasonalScene(
   width: number,
   height: number,
 ) {
-  const sceneCanvas = document.createElement('canvas')
-  sceneCanvas.width = 720
-  sceneCanvas.height = 840
-  const sceneContext = sceneCanvas.getContext('2d')
-  if (!sceneContext) throw new Error('Canvas scenery rendering is not available in this browser.')
-
-  sceneContext.scale(2, 2)
-  drawSeasonalScenery(sceneContext, sceneId)
-  drawSeasonalWeather(sceneContext, sceneId)
-
-  const sceneWidth = height * (360 / 420)
-  const sceneX = (width - sceneWidth) / 2
-  const sharpCanvas = document.createElement('canvas')
-  sharpCanvas.width = Math.ceil(sceneWidth)
-  sharpCanvas.height = height
-  const sharpContext = sharpCanvas.getContext('2d')
-  if (!sharpContext) throw new Error('Canvas scenery composition is not available in this browser.')
-  sharpContext.drawImage(sceneCanvas, 0, 0, sharpCanvas.width, height)
-  sharpContext.globalCompositeOperation = 'destination-in'
-  const edgeFade = sharpContext.createLinearGradient(0, 0, sharpCanvas.width, 0)
-  edgeFade.addColorStop(0, 'rgba(255,255,255,0)')
-  edgeFade.addColorStop(0.14, '#fff')
-  edgeFade.addColorStop(0.86, '#fff')
-  edgeFade.addColorStop(1, 'rgba(255,255,255,0)')
-  sharpContext.fillStyle = edgeFade
-  sharpContext.fillRect(0, 0, sharpCanvas.width, sharpCanvas.height)
-
-  ctx.save()
-  try {
-    ctx.clearRect(0, 0, width, height)
-    ctx.filter = 'blur(90px) saturate(.75)'
-    ctx.globalAlpha = 0.84
-    ctx.drawImage(sceneCanvas, 0, 0, width, height)
-    ctx.filter = 'none'
-    ctx.globalAlpha = 1
-    ctx.drawImage(sharpCanvas, sceneX, 0)
-  } finally {
-    ctx.restore()
-  }
+  drawSeasonalScenery(ctx, sceneId, width, height)
 }
 
 function drawFlowingStream(ctx: CanvasRenderingContext2D, time: number) {
@@ -1567,7 +1620,7 @@ function drawMovingWeather(
 ) {
   const kind = scene.particleKind ?? scene.weatherKind
   const particleCount = kind === 'snow'
-    ? 42
+    ? scene.id === 'snowbound-cabin' ? 78 : 42
     : kind === 'ground-blizzard'
       ? 36
       : kind === 'rain'
@@ -1582,13 +1635,16 @@ function drawMovingWeather(
 
   if (kind === 'mist') {
     ctx.save()
-    ctx.globalAlpha = 0.12 + (Math.sin(time * 0.22) + 1) * 0.06
-    const mist = ctx.createLinearGradient(0, 420, 0, 680)
-    mist.addColorStop(0, 'rgba(244, 244, 237, 0)')
-    mist.addColorStop(0.55, 'rgba(244, 244, 237, .9)')
-    mist.addColorStop(1, 'rgba(244, 244, 237, 0)')
-    ctx.fillStyle = mist
-    ctx.fillRect(Math.sin(time * 0.12) * 70, 420, 1440, 260)
+    for (let layer = 0; layer < 3; layer++) {
+      const top = 440 + layer * 76
+      ctx.globalAlpha = 0.07 + (Math.sin(time * 0.22 + layer) + 1) * 0.035
+      const mist = ctx.createLinearGradient(0, top, 0, top + 145)
+      mist.addColorStop(0, 'rgba(244, 244, 237, 0)')
+      mist.addColorStop(0.55, 'rgba(244, 244, 237, .9)')
+      mist.addColorStop(1, 'rgba(244, 244, 237, 0)')
+      ctx.fillStyle = mist
+      ctx.fillRect(Math.sin(time * (0.1 + layer * .025) + layer) * (70 + layer * 35), top, 1440, 145)
+    }
     ctx.restore()
     return
   }
@@ -1739,6 +1795,63 @@ function drawSceneEvents(
   if (!scene.events?.length) return
   const seed = scene.staticFrame?.seed ?? 0
   const offset = seed * 0.137
+
+  if (scene.id === 'snowbound-cabin') {
+    ctx.save()
+    ctx.globalAlpha = .16 + (Math.sin(time * .55) + 1) * .06
+    ctx.strokeStyle = '#dce8f0'; ctx.lineWidth = 8; ctx.lineCap = 'round'
+    ctx.beginPath(); ctx.moveTo(765, 468); ctx.bezierCurveTo(740, 430, 790, 410, 760, 372); ctx.bezierCurveTo(735, 343, 785, 321, 766, 292); ctx.stroke()
+    ctx.restore()
+  }
+
+  if (scene.id === 'whiteout-pass') {
+    const fade = .25 + (Math.sin(time * .38) + 1) * .3
+    ctx.save(); ctx.globalAlpha = fade; ctx.strokeStyle = '#d54c43'; ctx.fillStyle = '#d54c43'; ctx.lineWidth = 5
+    for (let i = 0; i < 6; i++) { const x = 110 + i * 230, y = 770 - i * 24; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 2, y - 52); ctx.stroke(); ctx.beginPath(); ctx.arc(x + 2, y - 52, 8, Math.PI, Math.PI * 2); ctx.fill() }
+    ctx.restore()
+  }
+
+  if (scene.id === 'cherry-blossom-rain' || scene.id === 'rainlit-greenhouse') {
+    ctx.save(); ctx.globalAlpha = scene.id === 'cherry-blossom-rain' ? .24 : .18; ctx.strokeStyle = '#e6f0f4'; ctx.lineWidth = 1.4
+    for (let i = 0; i < 30; i++) { const x = (i * 179 + time * 95) % 1480 - 20, y = (i * 83 + time * 230) % 900; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 9, y + 27); ctx.stroke() }
+    ctx.restore()
+  }
+
+  if (scene.id === 'cherry-blossom-rain') {
+    ctx.save(); ctx.strokeStyle = '#f8e4e8'; ctx.lineWidth = 2
+    for (let i = 0; i < 5; i++) { const phase = (time * .18 + i * .21) % 1, radius = 4 + phase * 48; ctx.globalAlpha = (1 - phase) * .42; ctx.beginPath(); ctx.ellipse(180 + i * 275, 748 + (i % 2) * 42, radius, radius * .2, 0, 0, Math.PI * 2); ctx.stroke() }
+    ctx.restore()
+  }
+
+  if (scene.id === 'rainlit-greenhouse') {
+    ctx.save(); ctx.strokeStyle = '#d7f2e5'; ctx.lineWidth = 3; ctx.globalAlpha = .52
+    for (let i = 0; i < 8; i++) { const phase = (time * .12 + i * .13) % 1, x = 510 + (i * 53) % 430, y = 510 + phase * 168; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 4, y + 12, x + 1, y + 25); ctx.stroke() }
+    ctx.restore()
+  }
+
+  if (scene.id === 'summer-meadow') {
+    ctx.save(); ctx.globalAlpha = .1 + (Math.sin(time * .17) + 1) * .035; ctx.fillStyle = '#4d6480'
+    for (let i = 0; i < 3; i++) { const x = ((i * 570 + time * 16) % 1900) - 230; ctx.beginPath(); ctx.ellipse(x, 630, 260, 45, 0, 0, Math.PI * 2); ctx.ellipse(x + 170, 638, 190, 38, 0, 0, Math.PI * 2); ctx.fill() }
+    ctx.restore()
+  }
+
+  if (scene.id === 'pine-forest-flurry') {
+    ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = .16 + (Math.sin(time * .24) + 1) * .035
+    for (let i = 0; i < 4; i++) {
+      const x = 90 + i * 330 + Math.sin(time * .18 + i) * 24
+      const g = ctx.createLinearGradient(x, 250, x + 130, 720)
+      g.addColorStop(0, '#ffe0a800'); g.addColorStop(.5, '#ffe0a866'); g.addColorStop(1, '#ffe0a800')
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x, 250); ctx.lineTo(x + 28, 250); ctx.lineTo(x + 170, 720); ctx.lineTo(x + 70, 720); ctx.closePath(); ctx.fill()
+    }
+    ctx.restore()
+  }
+
+  if (scene.id === 'snowbound-cabin' || scene.id === 'winter-village') {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'
+    const points = scene.id === 'snowbound-cabin' ? [[560, 630], [744, 630]] : Array.from({length: 20}, (_, i) => [120 + i * 130, 650 + (i % 3) * 24] as const)
+    points.forEach(([x, y], i) => { const pulse = .55 + (Math.sin(time * .8 + i * 1.7) + 1) * .12, g = ctx.createRadialGradient(x, y, 1, x, y, 68); g.addColorStop(0, '#ffd27a66'); g.addColorStop(1, '#ffd27a00'); ctx.globalAlpha = pulse; ctx.fillStyle = g; ctx.fillRect(x - 68, y - 68, 136, 136) })
+    ctx.restore()
+  }
 
   if (scene.events.includes('bough-puff')) {
     const pulse = eventPulse(time, 8 + seed % 4, 1.5, offset)
@@ -1892,7 +2005,10 @@ export function drawSeasonalMotion(
   const scene = getSeasonalScenery(sceneId)
   ctx.save()
   try {
-    ctx.scale(width / 1440, height / 900)
+    const scale = Math.max(width / 1440, height / 900)
+    const sceneWidth = 1440 * scale
+    ctx.translate(width < height * 1.15 ? width - sceneWidth : (width - sceneWidth) / 2, (height - 900 * scale) / 2)
+    ctx.scale(scale, scale)
     drawSceneWater(ctx, scene, time)
     drawLivingTree(ctx, scene, time)
     drawMovingWeather(ctx, scene, time)

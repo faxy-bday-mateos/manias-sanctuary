@@ -35,6 +35,12 @@ const samplePoints: ConstellationPoint[] = [
   { x: 143, y: 253 },
 ]
 
+const constellationTemplates: { id: string; label: string; points: ConstellationPoint[]; closed: boolean }[] = [
+  { id: 'starpath', label: 'Star path', points: samplePoints, closed: false },
+  { id: 'heart', label: 'Heart', points: [{ x: 90, y: 190 }, { x: 110, y: 150 }, { x: 150, y: 155 }, { x: 180, y: 190 }, { x: 215, y: 155 }, { x: 253, y: 165 }, { x: 270, y: 200 }, { x: 235, y: 240 }, { x: 180, y: 290 }, { x: 125, y: 245 }], closed: true },
+  { id: 'orbit', label: 'Orbit', points: [{ x: 180, y: 145 }, { x: 226, y: 174 }, { x: 246, y: 220 }, { x: 220, y: 270 }, { x: 180, y: 292 }, { x: 134, y: 264 }, { x: 113, y: 218 }, { x: 138, y: 170 }], closed: true },
+]
+
 function chooseWish(current: string) {
   const available = wishes.filter((wish) => wish !== current)
   return available[Math.floor(Math.random() * available.length)]
@@ -49,10 +55,13 @@ export function HomeKeepsake() {
   const [photoStyle, setPhotoStyle] = useState<PhotoStyle>('film')
   const [photoStatus, setPhotoStatus] = useState('')
   const [constellationWish, setConstellationWish] = useState(wishes[1])
+  const [constellationName, setConstellationName] = useState("Manuu's Little Sky")
   const [points, setPoints] = useState(samplePoints)
   const [isClosed, setIsClosed] = useState(false)
+  const [constellationTemplate, setConstellationTemplate] = useState('starpath')
   const [constellationStatus, setConstellationStatus] = useState('')
   const [selectedMoods, setSelectedMoods] = useState(['quiet', 'curious', 'gentle'])
+  const [customMood, setCustomMood] = useState('')
   const [moodStatus, setMoodStatus] = useState('')
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -101,13 +110,13 @@ export function HomeKeepsake() {
     const canvas = constellationCanvasRef.current
     if (!canvas) return
     try {
-      drawConstellationWallpaper(canvas, constellationWish, points, isClosed)
+      drawConstellationWallpaper(canvas, constellationWish, points, isClosed, constellationName, points.length - 1)
       setConstellationStatus(`${points.length} stars in your constellation.`)
     } catch (error) {
       console.error('Unable to render the constellation keepsake.', error)
       setConstellationStatus('The constellation preview could not be created.')
     }
-  }, [mode, constellationWish, points, isClosed])
+  }, [mode, constellationWish, points, isClosed, constellationName])
 
   useEffect(() => {
     if (mode !== 'mood') return
@@ -178,6 +187,7 @@ export function HomeKeepsake() {
     if (y >= 425) return
     setPoints((current) => [...current, { x, y }])
     setIsClosed(false)
+    setConstellationTemplate('free')
   }
 
   function addKeyboardStar() {
@@ -186,14 +196,15 @@ export function HomeKeepsake() {
       ...current,
       {
         x: 66 + ((index * 53) % 228),
-        y: 100 + ((index * 67) % 285),
+        y: 130 + ((index * 67) % 255),
       },
     ])
     setIsClosed(false)
+    setConstellationTemplate('free')
   }
 
   function toggleMood(mood: string) {
-    if (selectedMoods.includes(mood)) {
+    if (selectedMoods.some((item) => item.toLocaleLowerCase() === mood.toLocaleLowerCase())) {
       setSelectedMoods((current) => current.filter((item) => item !== mood))
       setMoodStatus('')
       return
@@ -203,6 +214,22 @@ export function HomeKeepsake() {
       return
     }
     setSelectedMoods((current) => [...current, mood])
+    setMoodStatus('')
+  }
+
+  function addCustomMood() {
+    const word = customMood.trim().replace(/\s+/g, ' ')
+    if (!word) return
+    if (selectedMoods.some((mood) => mood.toLocaleLowerCase() === word.toLocaleLowerCase())) {
+      setMoodStatus('That word is already on the map.')
+      return
+    }
+    if (selectedMoods.length >= 3) {
+      setMoodStatus('Remove a word before adding another.')
+      return
+    }
+    setSelectedMoods((current) => [...current, word])
+    setCustomMood('')
     setMoodStatus('')
   }
 
@@ -292,11 +319,30 @@ export function HomeKeepsake() {
             {mode === 'constellation' && <>
               <p className="eyebrow">01 · A tiny sky, drawn by you</p>
               <h3>Give a wish its own constellation.</h3>
-              <p className="home-keepsake__description">Tap the sky to place stars. Each new star joins the last, making a shape only you could draw.</p>
+              <p className="home-keepsake__description">Start with a shape, then add stars or make it your own. Your newest star glows as it joins the sky.</p>
+              <div className="home-keepsake__option">
+                <span className="home-keepsake__label">Choose a starting shape</span>
+                <div className="home-keepsake__constellation-picker" role="group" aria-label="Choose a constellation starting shape">
+                  {constellationTemplates.map((template) => (
+                    <button key={template.id} type="button" aria-pressed={constellationTemplate === template.id} onClick={() => {
+                      setConstellationTemplate(template.id)
+                      setPoints(template.points.map((point) => ({ ...point })))
+                      setIsClosed(template.closed)
+                    }}>{template.label}</button>
+                  ))}
+                  <button type="button" aria-pressed={constellationTemplate === 'free'} onClick={() => { setConstellationTemplate('free'); setPoints([]); setIsClosed(false) }}>Free draw</button>
+                </div>
+              </div>
+              <label className="home-keepsake__caption-label" htmlFor="constellation-name">Name this constellation</label>
+              <input id="constellation-name" className="home-keepsake__caption" type="text" maxLength={28} value={constellationName} placeholder="A little sky for Manuu" onChange={(event) => setConstellationName(event.currentTarget.value)} />
               <div className="home-keepsake__actions">
-                <button type="button" className="home-keepsake__button" disabled={!points.length} onClick={() => { setPoints((current) => current.slice(0, -1)); setIsClosed(false) }}>Undo star</button>
+                <button type="button" className="home-keepsake__button" disabled={!points.length} onClick={() => { setPoints((current) => current.slice(0, -1)); setIsClosed(false); setConstellationTemplate('free') }}>Undo star</button>
                 <button type="button" className="home-keepsake__button" disabled={points.length < 3} aria-pressed={isClosed} onClick={() => setIsClosed((current) => !current)}>{isClosed ? 'Open the shape' : 'Close the shape'}</button>
-                <button type="button" className="home-keepsake__button" onClick={() => { setPoints(samplePoints); setIsClosed(false) }}>Try the sample</button>
+                <button type="button" className="home-keepsake__button" onClick={() => {
+                  const selected = constellationTemplates.find((template) => template.id === constellationTemplate)
+                  setPoints(selected ? selected.points.map((point) => ({ ...point })) : [])
+                  setIsClosed(selected?.closed ?? false)
+                }}>Start over</button>
               </div>
               <div className="home-keepsake__option">
                 <span className="home-keepsake__label">The wish for this sky</span>
@@ -305,20 +351,25 @@ export function HomeKeepsake() {
                 </button>
               </div>
               <button type="button" className="home-keepsake__button home-keepsake__button--primary" onClick={() => void download(constellationCanvasRef.current, 'manuu-constellation.png', setConstellationStatus)}>Save this sky</button>
-              <p id="home-constellation-help" className="home-keepsake__status">Tap the sky to add a star. With a keyboard, focus it and press Enter or Space.</p>
+              <p id="home-constellation-instructions" className="home-keepsake__status">Tap the sky to add a star. With a keyboard, focus it and press Enter or Space.</p>
               <p className="home-keepsake__status" role="status" aria-live="polite">{constellationStatus}</p>
             </>}
 
             {mode === 'mood' && <>
               <p className="eyebrow">03 · A small portrait of a feeling</p>
               <h3>Three words become her sky.</h3>
-              <p className="home-keepsake__description">Choose up to three words. Their colors and stars create a one-of-a-kind mood map.</p>
+              <p className="home-keepsake__description">Choose up to three words, or add one that feels more like her. Each word becomes a colored point in her sky.</p>
               <div className="home-keepsake__mood-picker" role="group" aria-label="Choose up to three words">
-                {moods.map((mood) => (
+                {[...moods, ...selectedMoods.filter((mood) => !moods.includes(mood))].map((mood) => (
                   <button key={mood} type="button" aria-pressed={selectedMoods.includes(mood)} onClick={() => toggleMood(mood)}>
                     {mood}
                   </button>
                 ))}
+              </div>
+              <label className="home-keepsake__label" htmlFor="custom-mood-word">Add her own word</label>
+              <div className="home-keepsake__custom-mood">
+                <input id="custom-mood-word" className="home-keepsake__caption" type="text" maxLength={18} value={customMood} placeholder="e.g. resilient" onChange={(event) => setCustomMood(event.currentTarget.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addCustomMood() } }} />
+                <button type="button" className="home-keepsake__button" disabled={!customMood.trim()} onClick={addCustomMood}>Add word</button>
               </div>
               <button type="button" className="home-keepsake__button home-keepsake__button--primary" disabled={!selectedMoods.length} onClick={() => void download(moodCanvasRef.current, 'manuu-mood-map.png', setMoodStatus)}>Save this mood map</button>
               <p className="home-keepsake__status" role="status" aria-live="polite">{moodStatus}</p>
@@ -352,8 +403,8 @@ export function HomeKeepsake() {
                 height={1920}
                 role="button"
                 tabIndex={0}
-                aria-label={`Constellation sky with ${points.length} stars. Press Enter or Space to add a star.`}
-                aria-describedby="home-constellation-help"
+                aria-label={`${constellationName || 'Untitled constellation'}, with ${points.length} stars. Press Enter or Space to add a star.`}
+                aria-describedby="home-constellation-instructions"
                 onPointerDown={(event) => addStar(event.clientX, event.clientY, event.currentTarget)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
@@ -362,7 +413,7 @@ export function HomeKeepsake() {
                   }
                 }}
               />
-              <p id="home-constellation-help" className="home-keepsake__preview-caption">A birthday sky, drawn by you · 1080 × 1920</p>
+              <p className="home-keepsake__preview-caption">Tap or press Enter to add a star · {points.length} placed · newest star glows</p>
             </>}
             {mode === 'mood' && <>
               <canvas

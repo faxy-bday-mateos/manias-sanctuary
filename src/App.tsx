@@ -8,6 +8,7 @@ import { ButterflyGarden } from './sections/ButterflyGarden'
 import { HundredOrgans, HundredWishes } from './sections/Experiences'
 import { OpenWhenLetters } from './sections/OpenWhenLetters'
 import { BirthdayCountdown, isBirthdayToday } from './sections/BirthdayCountdown'
+import { birthdayContent } from './birthdayContent'
 import { recordInteraction, recordPageVisit } from './activityTracker'
 
 const AdminActivity = lazy(() =>
@@ -19,7 +20,7 @@ const pages = [
   { id: 'garden', title: 'Butterfly Garden', hint: 'Follow the lights to find tiny wishes.', icon: '❋' },
   { id: 'note', title: 'A Note for You', hint: 'A few words, just for today.', icon: '♡' },
   { id: 'wishes', title: '100 Little Wishes', hint: 'A book of birthday hopes, one page at a time.', icon: '✧' },
-  { id: 'organs', title: '100 Organs', hint: 'A gentle book celebrating every part of you.', icon: '❀' },
+  { id: 'organs', title: '100 Things I Appreciate About You', hint: 'A little book of details and qualities I appreciate about you.', icon: '❀' },
   { id: 'seasons', title: 'Four Seasons Supremacy', hint: 'Explore four seasonal skies with weather, wind, and light controls.', icon: '❄' },
   { id: 'openwhen', title: 'Open When…', hint: 'A few kind words for the days you need them.', icon: '✉' },
 ] as const
@@ -52,17 +53,35 @@ function App() {
   const [birthdayIsToday, setBirthdayIsToday] = useState(() => isBirthdayToday())
   const [skyCleanView, setSkyCleanView] = useState(false)
   const observatoryFrame = useRef<HTMLIFrameElement>(null)
+  const mainContent = useRef<HTMLElement>(null)
+  const focusPageAfterNavigation = useRef(false)
   const lastRecordedVisit = useRef('')
   const isAdminPath = window.location.pathname.replace(/\/+$/, '') === '/admin'
 
   useEffect(() => {
     const onHash = () => {
       if (window.location.hash === '#main-content') return
+      focusPageAfterNavigation.current = true
       setPage(readPage())
     }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
+
+  useEffect(() => {
+    const title = page === 'home'
+      ? birthdayContent.pageTitle
+      : page === 'world'
+        ? 'Birthday World'
+        : page === 'admin'
+          ? 'Admin Activity'
+          : pages.find((item) => item.id === page)?.title
+    if (title) document.title = page === 'home' ? title : `${title} · Manuu’s Birthday`
+    if (focusPageAfterNavigation.current) {
+      focusPageAfterNavigation.current = false
+      mainContent.current?.focus()
+    }
+  }, [page])
 
   useEffect(() => {
     if (page !== 'admin' && lastRecordedVisit.current !== page) {
@@ -147,12 +166,14 @@ function App() {
   return (
     <>
       <a className="skip-link" href="#main-content">Skip to content</a>
-      <main id="main-content" tabIndex={-1} className={`birthday-app${page === 'sky' && skyCleanView ? ' birthday-app--sky-clean' : ''}`}>
+      <main ref={mainContent} id="main-content" tabIndex={-1} className={`birthday-app${page === 'sky' && skyCleanView ? ' birthday-app--sky-clean' : ''}`}>
       {page !== 'sky' && <header className={`site-nav${page === 'seasons' ? ' site-nav--fullscreen' : ''}`}>
         {page !== 'seasons' && <a className="site-brand" href={isAdminPath ? '/' : '#/'} aria-label="Manuu's birthday home">✦ <span>for Manuu</span></a>}
         {page !== 'home' && <button className="back-home" type="button" onClick={goHome}>← Birthday home</button>}
       </header>}
-      {!birthdayIsToday && <BirthdayCountdown onComplete={() => setBirthdayIsToday(true)} />}
+      {birthdayContent.countdown.enabled && !birthdayIsToday && (
+        <BirthdayCountdown onComplete={() => setBirthdayIsToday(true)} />
+      )}
       {page === 'home' ? (
         <div className="birthday-home birthday-home--landing">
           <Hero birthdayMode={birthdayIsToday} />

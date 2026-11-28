@@ -72,7 +72,7 @@ export function OpenWhenLetters() {
             ) : (
               <>
                 <p className="open-when__prompt">
-                  Why didn’t you tell me? Anyway, here’s the reminder. Maybe I’m not here at this exact moment, but read this and let me cheer you on from here.
+                  No explanation needed. I just wanted to leave you a little encouragement for whenever you might need it.
                 </p>
                 <div className="open-when__dialog-actions">
                   <button type="button" className="open-when__read" onClick={() => setShowNote(true)}>

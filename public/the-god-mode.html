@@ -52,6 +52,17 @@ button,input{font:inherit;color:inherit}
   padding:7px 13px;border-radius:99px;cursor:pointer;transition:background .25s,color .25s}
 .chip:hover,.btn:hover{background:rgba(255,255,255,.16)}
 .chip[aria-pressed=true]{background:var(--acc);color:#10202e;border-color:transparent}
+#bTunes{min-height:46px;padding:10px 18px;border-color:color-mix(in srgb,var(--acc) 78%,white);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 94%,white),color-mix(in srgb,var(--acc) 68%,white));
+  color:#182235;font-weight:700;letter-spacing:.015em;box-shadow:0 4px 18px color-mix(in srgb,var(--acc) 35%,transparent),inset 0 1px rgba(255,255,255,.55);
+  transition:transform .2s,box-shadow .2s,filter .2s}
+#bTunes:hover{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 82%,white),color-mix(in srgb,var(--acc) 58%,white));
+  transform:translateY(-1px);box-shadow:0 7px 22px color-mix(in srgb,var(--acc) 44%,transparent),inset 0 1px rgba(255,255,255,.65)}
+#bTunes:active{transform:translateY(0) scale(.98)}
+#bSpotify{min-height:46px;padding:10px 16px;border-color:rgba(30,215,96,.7);color:#e8fff0;
+  background:linear-gradient(135deg,rgba(30,215,96,.24),rgba(30,215,96,.1));font-weight:650}
+#bSpotify:hover{background:linear-gradient(135deg,rgba(30,215,96,.36),rgba(30,215,96,.18))}
+.mobile-controls-toggle{display:none}
 :focus-visible{outline:2px solid #f2e4c9;outline-offset:2px}
 #sliders{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 20px;margin-top:14px}
 label{display:block;font-size:12px;opacity:.85}
@@ -63,11 +74,36 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#fff;border:0}
 .actions{display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap}
 .hint{margin-left:auto;font-size:11px;opacity:.6}
+#panel{overflow:visible}
+#tunePanel,#spotifyPanel{position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);width:min(460px,calc(100vw - 16px));max-height:min(65vh,460px);overflow:auto;
+  padding:12px;border:1px solid rgba(255,255,255,.2);border-radius:18px;background:rgba(18,25,45,.88);backdrop-filter:blur(22px) saturate(1.25);-webkit-backdrop-filter:blur(22px) saturate(1.25);box-shadow:0 18px 60px rgba(0,0,0,.3)}
+#tunePanel[hidden],#spotifyPanel[hidden]{display:none}
+.tune-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.tune-head strong{font:400 20px/1.2 "Iowan Old Style","Palatino Linotype",Georgia,serif}
+.tune-head span{font-size:11px;opacity:.68}
+.ambience-controls{display:flex;align-items:center;gap:12px;padding:10px 0 2px}
+.ambience-controls .btn{background:color-mix(in srgb,var(--acc) 22%,rgba(255,255,255,.06))}
+.ambience-volume{flex:1;min-width:100px}.ambience-volume label{font-size:11px;opacity:.75}.ambience-volume input{margin:0}
+#ambienceStatus{min-height:1.3em;margin-top:8px;font-size:11px;opacity:.68}
+#spotifyTracks{display:grid;gap:6px}
+.spotify-track{display:flex;align-items:center;gap:11px;width:100%;padding:9px 10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;color:inherit;font:inherit;text-align:left;cursor:pointer;background:rgba(255,255,255,.035)}
+.spotify-track:hover,.spotify-track:focus-visible,.spotify-track[aria-pressed=true]{background:rgba(30,215,96,.12);border-color:rgba(30,215,96,.55)}
+.spotify-track__icon{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:rgba(30,215,96,.2);color:#baffcf}
+.spotify-track__info{flex:1;min-width:0}.spotify-track__title{font-size:13px}.spotify-track__artist{font-size:11px;opacity:.65;margin-top:2px}
+.spotify-track__action{font-size:10px;letter-spacing:.04em;opacity:.68;white-space:nowrap}
+#spotifyPlayer{display:block;width:100%;height:152px;margin-top:10px;border:0;border-radius:12px;background:rgba(0,0,0,.2)}
+#spotifyPlayer[hidden]{display:none}
 @media(max-width:640px){
   #sliders{grid-template-columns:1fr 1fr}.hint{display:none}.hud{padding-left:16px;padding-right:16px}.env{gap:18px}
+  #bTunes,#bSpotify{min-height:48px;padding-inline:16px}
+  #bMobileControls:not([hidden]){display:flex;width:100%;min-height:46px;justify-content:center;margin-bottom:8px;background:rgba(255,255,255,.12)}
+  body.mobile-controls-collapsed #controlsBody{display:none}
 }
 @media(max-height:520px){.env{display:none}#wSub{display:none}}
-@media(prefers-reduced-motion:reduce){.grain{animation:none}}
+@media(prefers-reduced-motion:reduce){
+  .grain{animation:none!important}
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style>
 </head>
 <body>
@@ -92,6 +128,8 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
 </header>
 
 <section id="panel" aria-label="Sky controls">
+  <button class="btn mobile-controls-toggle" id="bMobileControls" type="button" aria-expanded="true" aria-controls="controlsBody" hidden>Scene controls</button>
+  <div id="controlsBody">
   <div id="seasons" role="tablist" aria-label="Seasons"></div>
   <div id="presets" role="group" aria-label="Weather presets"></div>
   <div id="sliders">
@@ -101,11 +139,28 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;bac
     <div><label for="rBri">Brightness <output id="oBri"></output></label><input id="rBri" type="range" min="40" max="140"></div>
   </div>
   <div class="actions">
+    <button class="btn" id="bTunes" type="button" aria-expanded="false" aria-controls="tunePanel">♫ Warm soundscape</button>
+    <button class="btn" id="bSpotify" type="button" aria-expanded="false" aria-controls="spotifyPanel">♫ Spotify tunes</button>
     <button class="btn" id="bPause">Pause</button>
     <button class="btn" id="bFull">Fullscreen</button>
     <button class="btn" id="bHide">Hide controls</button>
     <span class="hint">Keys: Space pauses, F fullscreen, H hides, S next season, 1 to 9 pick a preset</span>
   </div>
+  </div>
+  <aside id="tunePanel" aria-label="Seasonal ambient soundscape" hidden>
+    <div class="tune-head"><strong id="tuneSeason">Spring soundscape</strong><span>Made in this page · no downloads</span></div>
+    <div class="ambience-controls">
+      <button class="btn" id="bAmbience" type="button" aria-pressed="false">▶ Play soundscape</button>
+      <button class="btn" id="bMelody" type="button" aria-pressed="true" aria-label="Toggle melody; turn off for ambience only">♫ Melody on</button>
+      <div class="ambience-volume"><label for="ambienceVolume">Volume</label><input id="ambienceVolume" type="range" min="0" max="70" value="34"></div>
+    </div>
+    <p id="ambienceStatus" role="status" aria-live="polite">A soft melody with birds, breeze, and seasonal nature sounds.</p>
+  </aside>
+  <aside id="spotifyPanel" aria-label="Seasonal Spotify playlist" hidden>
+    <div class="tune-head"><strong id="spotifySeason">Spring tunes</strong><span>Choose a track to load Spotify’s player</span></div>
+    <div id="spotifyTracks"></div>
+    <iframe id="spotifyPlayer" title="Spotify seasonal music player" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" hidden></iframe>
+  </aside>
 </section>
 
 <script>
@@ -763,14 +818,24 @@ function step(dt, k) {
 }
 
 let raf = 0, last = 0, userPaused = false;
+const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
 function frame(ts) {
   raf = requestAnimationFrame(frame);
   const dt = Math.min(.05, (ts - last) / 1000 || 0);
   last = ts;
   step(dt, 1 - Math.exp(-dt * 1.8));                              // ~2s eased transitions
 }
-function start() { if (raf || userPaused || document.hidden) return; last = performance.now(); raf = requestAnimationFrame(frame); }
+function start() {
+  if (userPaused || document.hidden) return;
+  if (motionPreference.matches) { if (raf) stop(); last = performance.now(); step(0, 1); return; }
+  if (raf) return;
+  last = performance.now(); raf = requestAnimationFrame(frame);
+}
 function stop()  { cancelAnimationFrame(raf); raf = 0; }
+motionPreference.addEventListener?.('change', () => {
+  if (motionPreference.matches) { stop(); if (!userPaused) step(0, 1); }
+  else start();
+});
 document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
 
 /* =====================================================================
@@ -779,6 +844,11 @@ document.addEventListener('visibilitychange', () => document.hidden ? stop() : s
 const hud = $('hud'), panel = $('panel'), body = document.body;
 const rDen = $('rDen'), rWind = $('rWind'), rCloud = $('rCloud'), rBri = $('rBri');
 const bPause = $('bPause'), bFull = $('bFull'), bHide = $('bHide');
+const bTunes = $('bTunes'), tunePanel = $('tunePanel');
+const bAmbience = $('bAmbience'), ambienceVolume = $('ambienceVolume'), bMelody = $('bMelody');
+const bSpotify = $('bSpotify'), spotifyPanel = $('spotifyPanel');
+const bMobileControls = $('bMobileControls'), mobileControlsMedia = window.matchMedia('(max-width: 640px)');
+let mobileControlsInitialized = false;
 let swapT = 0, firstPreset = true;
 
 // Seasons: tabs, per-season preset lists, remembered selection per season
@@ -786,9 +856,224 @@ const SEASONS = [
   { id: 'spring', label: 'Spring', acc: '#d7a6bd' }, { id: 'summer', label: 'Summer', acc: '#e0bf72' },
   { id: 'autumn', label: 'Autumn', acc: '#d39574' }, { id: 'winter', label: 'Winter', acc: '#a5cbd0' }
 ];
+const PREFERENCES_KEY = 'four-seasons-supremacy-preferences-v1';
+let savedPreferences = {};
+try {
+  const stored = JSON.parse(localStorage.getItem(PREFERENCES_KEY) || '{}');
+  if (stored && typeof stored === 'object') savedPreferences = stored;
+} catch (_) { /* Storage may be unavailable in private browsing. */ }
+const SOUND_PROFILES = {
+  spring: { title: 'Spring in bloom', detail: 'A soft, bright melody with little birds and a fresh breeze.', root: 261.63, scale: [0, 2, 4, 7, 9, 12, 16, 14, 9, 7, 4, 2], wind: .025, rustle: .008, birds: true, insects: false },
+  summer: { title: 'Golden summer air', detail: 'Warm plucked notes, distant birds, and a slow summer breeze.', root: 220, scale: [0, 4, 7, 9, 12, 16, 14, 12, 9, 7, 4, 2], wind: .032, rustle: .004, birds: true, insects: true },
+  autumn: { title: 'Amber leaves', detail: 'A mellow melody under a leafy hush and a wandering wind.', root: 220, scale: [0, 3, 7, 10, 12, 15, 14, 10, 7, 5, 3, 2], wind: .027, rustle: .022, birds: false, insects: false },
+  winter: { title: 'Quiet snowfall', detail: 'Slow, bell-soft notes above a snowy hush and low winter wind.', root: 196, scale: [0, 2, 5, 7, 9, 12, 14, 12, 9, 7, 5, 2], wind: .034, rustle: .002, birds: false, insects: false }
+};
+const SPOTIFY_TUNES = {
+  spring: [['Bloom', 'The Paper Kites', '44alNkXsYnTyPnkMdohBcx'], ['Here Comes the Sun', 'The Beatles', '45yEy5WJywhJ3sDI28ajTm'], ['Strawberry Swing', 'Coldplay', '2dphvmoLEXdk8hOYxmHlI3'], ['April Come She Will', 'Simon & Garfunkel', '59Dwr2JJk7ygEibDAtsTeo']],
+  summer: [['Island in the Sun', 'Weezer', '2MLHyLy5z5l5YRp7momlgw'], ['Sunset Lover', 'Petit Biscuit', '0j8GjVLylsc0vHducg7iXo'], ['Sweet Disposition', 'The Temper Trap', '5RoIXwyTCdyUjpMMkk4uPd'], ['golden hour', 'JVKE', '4yNk9iz9WVJikRFle3XEvn']],
+  autumn: [['Harvest Moon', 'Neil Young', '5l9c6bJmzvftumhz4TMPgk'], ['Pink + White', 'Frank Ocean', '3xKsf9qdS1CyvXSMEid6g8'], ['Holocene', 'Bon Iver', '6DESft0qm6RhoYf5wzeoGH'], ['The Night We Met', 'Lord Huron', '3hRV0jL3vUpRrcy398teAU']],
+  winter: [['Winter Song', 'Sara Bareilles & Ingrid Michaelson', '4glKKkLXXWUYUbtkjGXHhs'], ['River', 'Joni Mitchell', '0DAmSYQW9kq9gQNDI002KP'], ['Snowman', 'Sia', '7uoFMmxln0GPXQ0AcCBXRq'], ['Cherry Wine (Live)', 'Hozier', '1NJqqnQ60kYiqXQxcLGAEj']]
+};
+let audio = null, soundPlaying = false, soundSeason = 'spring', melodyTimer = 0, birdTimer = 0, melodyStep = 0;
+let autoplayBlocked = false;
+function initSoundscape() {
+  if (audio) return audio;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) throw new Error('Web Audio is not available in this browser.');
+  const ctx = new AudioContext(), master = ctx.createGain();
+  master.gain.value = +ambienceVolume.value / 100;
+  master.connect(ctx.destination);
+  const sceneGain = ctx.createGain(); sceneGain.gain.value = 1; sceneGain.connect(master);
+  const buffer = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate), data = buffer.getChannelData(0);
+  // One reusable noise bed supplies wind and leaves without downloaded audio.
+  let noiseState = 4312;
+  for (let i = 0; i < data.length; i++) { noiseState = (noiseState * 16807) % 2147483647; data[i] = (noiseState / 1073741823.5) - 1; }
+  const source = ctx.createBufferSource(); source.buffer = buffer; source.loop = true;
+  const windFilter = ctx.createBiquadFilter(); windFilter.type = 'lowpass'; windFilter.frequency.value = 620;
+  const windGain = ctx.createGain(); windGain.gain.value = .025;
+  const windLfo = ctx.createOscillator(), windDepth = ctx.createGain();
+  windLfo.frequency.value = .075; windDepth.gain.value = .012; windLfo.connect(windDepth).connect(windGain.gain); windLfo.start();
+  const leafFilter = ctx.createBiquadFilter(); leafFilter.type = 'bandpass'; leafFilter.frequency.value = 1350; leafFilter.Q.value = .55;
+  const leafGain = ctx.createGain(); leafGain.gain.value = .008;
+  const leafLfo = ctx.createOscillator(), leafDepth = ctx.createGain();
+  leafLfo.frequency.value = .13; leafDepth.gain.value = .005; leafLfo.connect(leafDepth).connect(leafGain.gain); leafLfo.start();
+  source.connect(windFilter).connect(windGain).connect(sceneGain);
+  source.connect(leafFilter).connect(leafGain).connect(sceneGain);
+  source.start();
+  const pad = ctx.createOscillator(), padGain = ctx.createGain(), padFilter = ctx.createBiquadFilter();
+  pad.type = 'sine'; pad.frequency.value = 130.81; padGain.gain.value = .025; padFilter.type = 'lowpass'; padFilter.frequency.value = 520;
+  pad.connect(padFilter).connect(padGain).connect(sceneGain); pad.start();
+  const insectOsc = ctx.createOscillator(), insectGain = ctx.createGain(), insectLfo = ctx.createOscillator(), insectDepth = ctx.createGain();
+  insectOsc.type = 'sine'; insectOsc.frequency.value = 1680; insectGain.gain.value = .001;
+  insectLfo.frequency.value = 4.2; insectDepth.gain.value = .0015;
+  insectLfo.connect(insectDepth).connect(insectGain.gain); insectOsc.connect(insectGain).connect(sceneGain);
+  insectOsc.start(); insectLfo.start();
+  audio = { ctx, master, sceneGain, windGain, windFilter, leafGain, leafFilter, pad, padGain, padFilter, insectGain, insectDepth };
+  applySoundProfile(soundSeason, true);
+  return audio;
+}
+function applySoundProfile(seasonId, immediate = false) {
+  soundSeason = seasonId;
+  const profile = SOUND_PROFILES[seasonId];
+  $('tuneSeason').textContent = profile.title;
+  $('ambienceStatus').textContent = soundPlaying ? profile.detail : `Ready: ${profile.detail}`;
+  if (!audio) return;
+  const { ctx, sceneGain, windGain, leafGain, windFilter, leafFilter, pad, padFilter, insectGain } = audio;
+  const now = ctx.currentTime, dur = immediate ? 0 : .8;
+  if (immediate) sceneGain.gain.setValueAtTime(1, now);
+  else {
+    sceneGain.gain.cancelScheduledValues(now);
+    sceneGain.gain.setValueAtTime(sceneGain.gain.value, now);
+    sceneGain.gain.linearRampToValueAtTime(.12, now + .2);
+    sceneGain.gain.linearRampToValueAtTime(1, now + 1.05);
+  }
+  windGain.gain.setTargetAtTime(profile.wind, now, dur || .01);
+  leafGain.gain.setTargetAtTime(profile.rustle, now, dur || .01);
+  windFilter.frequency.setTargetAtTime(seasonId === 'winter' ? 420 : seasonId === 'autumn' ? 760 : 620, now, dur || .01);
+  leafFilter.frequency.setTargetAtTime(seasonId === 'autumn' ? 1050 : 1650, now, dur || .01);
+  pad.frequency.setTargetAtTime(profile.root / 2, now, dur || .01);
+  padFilter.frequency.setTargetAtTime(seasonId === 'winter' ? 760 : 1050, now, dur || .01);
+  insectGain.gain.setTargetAtTime(profile.insects ? .0012 : .00001, now, dur || .01);
+  if (soundPlaying) scheduleBird();
+}
+function playSoftNote() {
+  if (!audio || !soundPlaying || !melodyEnabled) return;
+  const { ctx, master } = audio, profile = SOUND_PROFILES[soundSeason];
+  const semitones = profile.scale[melodyStep % profile.scale.length]; melodyStep++;
+  const osc = ctx.createOscillator(), tone = ctx.createBiquadFilter(), env = ctx.createGain();
+  const now = ctx.currentTime, duration = 2.3 + (melodyStep % 3) * .25;
+  osc.type = melodyStep % 4 === 0 ? 'sine' : 'triangle';
+  osc.frequency.value = profile.root * Math.pow(2, semitones / 12);
+  tone.type = 'lowpass'; tone.frequency.value = 1150;
+  env.gain.setValueAtTime(.0001, now); env.gain.linearRampToValueAtTime(.045, now + .09);
+  env.gain.exponentialRampToValueAtTime(.0001, now + duration);
+  osc.connect(tone).connect(env).connect(audio.sceneGain); osc.start(now); osc.stop(now + duration + .05);
+}
+function chirp() {
+  if (!audio || !soundPlaying || !SOUND_PROFILES[soundSeason].birds) return;
+  const { ctx, master } = audio, now = ctx.currentTime;
+  const osc = ctx.createOscillator(), env = ctx.createGain();
+  const startHz = 1850 + (melodyStep % 4) * 150;
+  osc.type = 'sine'; osc.frequency.setValueAtTime(startHz, now); osc.frequency.exponentialRampToValueAtTime(startHz * 1.48, now + .12);
+  osc.frequency.exponentialRampToValueAtTime(startHz * .92, now + .27);
+  env.gain.setValueAtTime(.0001, now); env.gain.linearRampToValueAtTime(.018, now + .025); env.gain.exponentialRampToValueAtTime(.0001, now + .3);
+  osc.connect(env).connect(audio.sceneGain); osc.start(now); osc.stop(now + .32);
+}
+function scheduleBird() {
+  clearTimeout(birdTimer);
+  if (soundPlaying && SOUND_PROFILES[soundSeason].birds) {
+    birdTimer = setTimeout(() => { chirp(); birdTimer = setTimeout(() => { if (Math.sin(melodyStep) > -.2) chirp(); scheduleBird(); }, 650); }, 5600 + (melodyStep % 5) * 900);
+  }
+}
+function setSoundPlaying(playing) {
+  const sound = initSoundscape();
+  soundPlaying = playing;
+  bAmbience.textContent = playing ? 'Ⅱ Pause soundscape' : '▶ Play soundscape';
+  bAmbience.setAttribute('aria-pressed', String(playing));
+  $('ambienceStatus').textContent = playing ? SOUND_PROFILES[soundSeason].detail : `Paused: ${SOUND_PROFILES[soundSeason].detail}`;
+  if (playing) {
+    sound.ctx.resume().then(() => {
+      if (!soundPlaying) return;
+      autoplayBlocked = false;
+      clearInterval(melodyTimer);
+      if (melodyEnabled) { playSoftNote(); melodyTimer = setInterval(playSoftNote, 3300); }
+      scheduleBird();
+    }).catch(() => { soundPlaying = false; autoplayBlocked = true; bAmbience.textContent = '▶ Play soundscape'; bAmbience.setAttribute('aria-pressed', 'false'); $('ambienceStatus').textContent = 'Your browser blocked autoplay. Tap anywhere or press Play soundscape to start.'; });
+  } else {
+    clearInterval(melodyTimer); clearTimeout(birdTimer); sound.ctx.suspend();
+  }
+}
+function attemptSoundscapeAutoplay() {
+  try {
+    setSoundPlaying(true);
+    const context = audio.ctx;
+    setTimeout(() => {
+      if (soundPlaying && context.state !== 'running') {
+        soundPlaying = false; autoplayBlocked = true;
+        clearInterval(melodyTimer); clearTimeout(birdTimer);
+        bAmbience.textContent = '▶ Play soundscape'; bAmbience.setAttribute('aria-pressed', 'false');
+        $('ambienceStatus').textContent = 'Tap anywhere or press Play soundscape to enable audio in your browser.';
+      }
+    }, 1200);
+  } catch (error) {
+    autoplayBlocked = true;
+    $('ambienceStatus').textContent = error.message || 'Tap anywhere or press Play soundscape to enable audio.';
+  }
+}
+bAmbience.addEventListener('click', () => {
+  try { setSoundPlaying(!soundPlaying); }
+  catch (error) { $('ambienceStatus').textContent = error.message || 'Audio is unavailable in this browser.'; }
+});
+bMelody.addEventListener('click', () => {
+  melodyEnabled = !melodyEnabled;
+  updateMelodyButton();
+  clearInterval(melodyTimer);
+  if (soundPlaying && melodyEnabled) { playSoftNote(); melodyTimer = setInterval(playSoftNote, 3300); }
+  $('ambienceStatus').textContent = `${SOUND_PROFILES[soundSeason].detail}${melodyEnabled ? '' : ' Melody is off; ambience only.'}`;
+  savePreferences();
+});
+ambienceVolume.addEventListener('input', () => {
+  if (audio) audio.master.gain.setTargetAtTime(+ambienceVolume.value / 100, audio.ctx.currentTime, .04);
+  savePreferences();
+});
+document.addEventListener('visibilitychange', () => {
+  if (!audio || !soundPlaying) return;
+  if (document.hidden) { clearInterval(melodyTimer); clearTimeout(birdTimer); audio.ctx.suspend(); }
+  else audio.ctx.resume().then(() => { if (soundPlaying) { if (melodyEnabled) { playSoftNote(); melodyTimer = setInterval(playSoftNote, 3300); } scheduleBird(); } });
+});
+function startSoundOnFirstGesture() {
+  if (!autoplayBlocked) return;
+  removeEventListener('pointerdown', startSoundOnFirstGesture, true);
+  removeEventListener('keydown', startSoundOnFirstGesture, true);
+  try { setSoundPlaying(true); } catch (error) { $('ambienceStatus').textContent = error.message || 'Audio is unavailable in this browser.'; }
+}
+addEventListener('pointerdown', startSoundOnFirstGesture, true);
+addEventListener('keydown', startSoundOnFirstGesture, true);
 const KIND_LABEL = { snow: 'Snowfall', rain: 'Rainfall', petal: 'Petals', leaf: 'Leaves', pollen: 'Pollen' };
 const byS = SEASONS.map(se => PRESETS.flatMap((p, i) => p.season === se.id ? [i] : []));
 const lastIdx = byS.map(l => l[0]);
+SEASONS.forEach((season, seasonIndex) => {
+  const storedIndex = Number(savedPreferences.lastPresets?.[season.id]);
+  if (Number.isInteger(storedIndex) && PRESETS[storedIndex]?.season === season.id) lastIdx[seasonIndex] = storedIndex;
+});
+if (Number.isFinite(Number(savedPreferences.volume))) ambienceVolume.value = String(clamp(Number(savedPreferences.volume), 0, 70));
+let melodyEnabled = savedPreferences.melodyEnabled !== false;
+function updateMelodyButton() {
+  bMelody.textContent = melodyEnabled ? '♫ Melody on' : '♫ Melody off';
+  bMelody.setAttribute('aria-pressed', String(melodyEnabled));
+  bMelody.setAttribute('aria-label', melodyEnabled ? 'Turn melody off for ambience only' : 'Turn the melody back on');
+}
+updateMelodyButton();
+function savePreferences() {
+  const lastPresets = {};
+  SEASONS.forEach((season, seasonIndex) => { lastPresets[season.id] = lastIdx[seasonIndex]; });
+  savedPreferences = { presetIndex: idx, lastPresets, volume: Number(ambienceVolume.value), melodyEnabled };
+  try { localStorage.setItem(PREFERENCES_KEY, JSON.stringify(savedPreferences)); } catch (_) { /* Keep this session working when storage is blocked. */ }
+}
+function syncMobileControls() {
+  if (mobileControlsMedia.matches) {
+    bMobileControls.hidden = false;
+    if (!mobileControlsInitialized) {
+      body.classList.add('mobile-controls-collapsed');
+      bMobileControls.textContent = 'Show scene controls';
+      bMobileControls.setAttribute('aria-expanded', 'false');
+      mobileControlsInitialized = true;
+    }
+  } else {
+    body.classList.remove('mobile-controls-collapsed');
+    bMobileControls.hidden = true;
+    bMobileControls.setAttribute('aria-expanded', 'true');
+    mobileControlsInitialized = false;
+  }
+}
+mobileControlsMedia.addEventListener?.('change', syncMobileControls);
+bMobileControls.addEventListener('click', () => {
+  const expanded = bMobileControls.getAttribute('aria-expanded') !== 'true';
+  body.classList.toggle('mobile-controls-collapsed', !expanded);
+  bMobileControls.setAttribute('aria-expanded', String(expanded));
+  bMobileControls.textContent = expanded ? 'Hide scene controls' : 'Show scene controls';
+});
+syncMobileControls();
 let sIdx = -1, chips = [];
 const tabs = SEASONS.map((se, i) => {
   const b = document.createElement('button');
@@ -811,6 +1096,48 @@ function renderChips() {                                          // rebuilt onl
 }
 const setSeason = s => setPreset(lastIdx[s]);
 
+function renderSpotifyTracks(seasonId) {
+  const season = SEASONS.find(item => item.id === seasonId);
+  $('spotifySeason').textContent = `${season.label} tunes`;
+  const fragment = document.createDocumentFragment();
+  SPOTIFY_TUNES[seasonId].forEach(([title, artist, trackId], index) => {
+    const button = document.createElement('button');
+    button.className = 'spotify-track'; button.type = 'button'; button.setAttribute('aria-pressed', 'false');
+    const icon = document.createElement('span'); icon.className = 'spotify-track__icon'; icon.textContent = '▶';
+    const info = document.createElement('span'); info.className = 'spotify-track__info';
+    const name = document.createElement('span'); name.className = 'spotify-track__title'; name.textContent = `${String(index + 1).padStart(2, '0')} · ${title}`;
+    const performer = document.createElement('span'); performer.className = 'spotify-track__artist'; performer.textContent = artist;
+    info.append(name, performer);
+    const action = document.createElement('span'); action.className = 'spotify-track__action'; action.textContent = 'LOAD PLAYER';
+    button.append(icon, info, action);
+    button.setAttribute('aria-label', `Load ${title} by ${artist} in the Spotify player`);
+    button.addEventListener('click', () => {
+      $('spotifyTracks').querySelectorAll('.spotify-track').forEach(item => item.setAttribute('aria-pressed', 'false'));
+      button.setAttribute('aria-pressed', 'true');
+      const player = $('spotifyPlayer');
+      player.hidden = false;
+      player.title = `Spotify player: ${title} by ${artist}`;
+      player.src = `https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`;
+    });
+    fragment.appendChild(button);
+  });
+  $('spotifyTracks').replaceChildren(fragment);
+  const player = $('spotifyPlayer'); player.hidden = true; player.removeAttribute('src');
+}
+
+bTunes.addEventListener('click', () => {
+  const open = tunePanel.hidden;
+  tunePanel.hidden = !open;
+  bTunes.setAttribute('aria-expanded', String(open));
+  if (open) { spotifyPanel.hidden = true; bSpotify.setAttribute('aria-expanded', 'false'); }
+});
+bSpotify.addEventListener('click', () => {
+  const open = spotifyPanel.hidden;
+  spotifyPanel.hidden = !open;
+  bSpotify.setAttribute('aria-expanded', String(open));
+  if (open) { tunePanel.hidden = true; bTunes.setAttribute('aria-expanded', 'false'); }
+});
+
 function syncLabels() {
   $('oDen').textContent = rDen.value + '%';
   const w = +rWind.value;
@@ -832,6 +1159,8 @@ function setPreset(i) {
   lastIdx[se] = i;
   if (se !== sIdx) {                                              // season changed: swap chips and accent colour
     sIdx = se; renderChips();
+    renderSpotifyTracks(SEASONS[se].id);
+    applySoundProfile(SEASONS[se].id);
     body.style.setProperty('--acc', SEASONS[se].acc);
     tabs.forEach((b, j) => b.setAttribute('aria-selected', j === se));
     $('bSeason').textContent = SEASONS[se].label;
@@ -845,6 +1174,7 @@ function setPreset(i) {
   if (firstPreset) { apply(); firstPreset = false; }
   else { hud.classList.add('swap'); swapT = setTimeout(apply, 280); }   // cross-fade the title
   readControls();
+  savePreferences();
 }
 
 // Pause / resume (the loop is fully cancelled while paused)
@@ -882,9 +1212,10 @@ function wake() {
 
 // Keyboard shortcuts
 addEventListener('keydown', e => {
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.metaKey || e.ctrlKey || e.altKey || e.isComposing) return;
+  if (e.target instanceof Element && e.target.closest('input, select, textarea, button, a, [contenteditable="true"]')) return;
   const k = e.key.toLowerCase();
-  if (k === ' ' && !/^(BUTTON|INPUT)$/.test(e.target.tagName)) { e.preventDefault(); setPaused(!userPaused); }
+  if (k === ' ') { e.preventDefault(); setPaused(!userPaused); }
   else if (k === 'f') toggleFS();
   else if (k === 'h') body.classList.toggle('hide');
   else if (k === 's') setSeason((sIdx + 1) % 4);
@@ -893,7 +1224,7 @@ addEventListener('keydown', e => {
 
 // Debounced resize
 let rt = 0;
-addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resize, 120); });
+addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { resize(); syncMobileControls(); }, 120); });
 
 // Film grain texture (tiny noise tile, generated once)
 {
@@ -906,11 +1237,13 @@ addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resize, 120
 
 /* ===== Boot ===== */
 resize();
-setPreset(0);
+const rememberedPreset = Number(savedPreferences.presetIndex);
+setPreset(Number.isInteger(rememberedPreset) && PRESETS[rememberedPreset] ? rememberedPreset : 0);
 Object.assign(cur, JSON.parse(JSON.stringify(target())));        // start fully settled on preset 1
 step(0, 1);
 wake();
 start();
+attemptSoundscapeAutoplay();
 })();
 </script>
 </body>

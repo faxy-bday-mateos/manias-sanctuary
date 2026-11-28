@@ -13,6 +13,24 @@ const wishGroups = [
 
 type WishSyncStatus = 'loading' | 'ready' | 'saving' | 'error' | 'unavailable'
 
+function describeWishSyncError(error: unknown) {
+  const code = typeof error === 'object' && error !== null && 'code' in error
+    ? String(error.code)
+    : ''
+  if (code.toLowerCase().includes('recaptcha') || code.toLowerCase().includes('app-check')) {
+    return import.meta.env.DEV
+      ? 'Local App Check needs setup: copy the AppCheck debug token from the browser console and add it under App Check → Apps → Manage debug tokens in Firebase.'
+      : 'App Check rejected this request. Verify the production reCAPTCHA Enterprise key and allowed domain in Firebase.'
+  }
+  if (code.includes('permission-denied')) {
+    if (import.meta.env.DEV) {
+      return 'Local wish sync was denied. Register this browser’s App Check debug token in Firebase; also verify Anonymous sign-in and deployed wishUnlocks rules.'
+    }
+    return 'Firebase denied wish sync. Enable Anonymous sign-in and deploy the wishUnlocks Firestore rules for this project.'
+  }
+  return 'Could not sync wishes. Check the browser console for the Firebase error.'
+}
+
 const matrixRainModes = [
   { value: 'matrix', label: 'Matrix' },
   { value: 'binary', label: 'Binary' },
@@ -137,6 +155,7 @@ export function HundredWishes() {
   const [open, setOpen] = useState<number | null>(0)
   const [openedWishes, setOpenedWishes] = useState<number[]>([])
   const [wishSync, setWishSync] = useState<WishSyncStatus>(remoteWishStoreConfigured ? 'loading' : 'unavailable')
+  const [wishSyncError, setWishSyncError] = useState('')
   const pendingWishSaves = useRef(0)
   const wishSaveFailed = useRef(false)
   const wishTotal = wishGroups.reduce((sum, group) => sum + group.wishes.length, 0)
@@ -155,7 +174,10 @@ export function HundredWishes() {
       })
       .catch((error: unknown) => {
         console.error('Could not load saved wishes.', error)
-        if (!cancelled) setWishSync('error')
+        if (!cancelled) {
+          setWishSyncError(describeWishSyncError(error))
+          setWishSync('error')
+        }
       })
     return () => {
       cancelled = true
@@ -175,6 +197,7 @@ export function HundredWishes() {
       .catch((error: unknown) => {
         console.error('Could not save this wish unlock.', error)
         wishSaveFailed.current = true
+        setWishSyncError(describeWishSyncError(error))
         setWishSync('error')
       })
       .finally(() => {
@@ -189,7 +212,7 @@ export function HundredWishes() {
     : wishSync === 'saving'
       ? 'Saving this wish…'
       : wishSync === 'error'
-        ? 'Could not sync every wish. Unlocks from this visit may not appear on other devices.'
+        ? wishSyncError || 'Could not sync every wish. Unlocks from this visit may not appear on other devices.'
         : wishSync === 'unavailable'
           ? 'Saved wishes are unavailable right now.'
           : 'Scratch a card to reveal it. Unlocked wishes stay saved across devices.'
@@ -231,8 +254,8 @@ export function HundredOrgans() {
     <header className="book-cover book-cover--organs">
       <span className="book-cover__eyebrow">A birthday keepsake <span aria-hidden="true">·</span> 02</span>
       <span className="book-cover__ornament" aria-hidden="true">❀　✧　❀</span>
-      <h1>100 Organs</h1>
-      <p>One Hundred Reasons You Are Worth Knowing</p>
+      <h1>100 Things I Appreciate About You</h1>
+      <p>One hundred little things that make you, you.</p>
       <span className="book-cover__seal">FOR MANUU</span>
       <MatrixRainTool />
     </header>

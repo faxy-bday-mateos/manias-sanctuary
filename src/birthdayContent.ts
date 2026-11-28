@@ -2,6 +2,7 @@ export const birthdayContent = {
   pageTitle: 'Happy Birthday, Manuu',
   greeting: 'Happy Birthday, Manuu',
   countdown: {
+    enabled: false,
     month: 11,
     day: 30,
     kicker: 'A little birthday magic is on its way',
@@ -20,7 +21,7 @@ export const birthdayContent = {
     subtitle:
       'Today is a chance to celebrate you. I hope it brings a little joy and a moment to feel appreciated.',
     birthdayMessage:
-      'Happy birthday, Manuu. Today is for celebrating you: the strong, thoughtful person you are, and all the ways you keep becoming yourself. I’m so grateful I get to call you my friend. Even though we have never met in person, your place in my life is real and important to me. You have faced hard chapters, and I hope you can look at how far you have come with pride, while remembering that you do not have to be strong every moment to deserve kindness. I hope this birthday brings you comfort, laughter, and little surprises that make you feel cared for. May the year ahead be gentler, brighter, and full of new reasons to feel proud. You deserve to feel celebrated today and all year long.',
+      'I’m so glad we found each other as friends. I hope today brings easy laughter, little surprises, and a reminder of how much you matter.',
     balloonNotes: [
       'May today bring you little moments that make you smile.',
       'You deserve to feel celebrated, today and every day.',

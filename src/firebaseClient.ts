@@ -24,6 +24,13 @@ const app = firebaseAppConfigured
   : null
 
 if (app && appCheckSiteKey) {
+  if (import.meta.env.DEV) {
+    // Locally served apps cannot satisfy production reCAPTCHA attestation.
+    // Register the emitted debug token in Firebase App Check before Firestore
+    // enforcement will accept requests from this browser.
+    const localWindow = self as typeof self & { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean }
+    localWindow.FIREBASE_APPCHECK_DEBUG_TOKEN = true
+  }
   initializeAppCheck(app, {
     provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
     isTokenAutoRefreshEnabled: true,

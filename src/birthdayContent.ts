@@ -2,7 +2,7 @@ export const birthdayContent = {
   pageTitle: 'Happy Birthday, Manuu',
   greeting: 'Happy Birthday, Manuu',
   countdown: {
-    enabled: false,
+    enabled: true,
     month: 11,
     day: 30,
     kicker: 'A little birthday magic is on its way',
